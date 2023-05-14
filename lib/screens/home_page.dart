@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'register_user.dart';
 
 class MyApp extends StatelessWidget {
   @override
@@ -22,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.red[600],
+      backgroundColor: Color(0xFFE0A420),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -33,9 +34,12 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RegistrationPage()),
+                  MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF202A44),
+              ),
               child: Text('Registration'),
             ),
             SizedBox(height: 16),
@@ -58,18 +62,21 @@ class _HomePageState extends State<HomePage> {
 class LogoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 200,
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        shape: BoxShape.circle,
-      ),
-      child: Image.asset(
-        'assets/logo.png',
-        color: Colors.white,
-        width: 60,
-        height: 60,
+    return ClipOval(
+      child: Container(
+        width: 250,
+        height: 250,
+        decoration: BoxDecoration(
+          color: Colors.grey[400],
+        ),
+        child: Center(
+          child: Image.asset(
+            'assets/logo.png',
+            color: Color(0xFF202A44),
+            width: 200,
+            height: 200,
+          ),
+        ),
       ),
     );
   }
