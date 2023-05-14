@@ -1,238 +1,245 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'home_page.dart';
 
-class RegisterScreen extends StatefulWidget {
-  @override
-  _RegisterScreenState createState() => _RegisterScreenState();
-}
-
-class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController _usernameControl = new TextEditingController();
-  final TextEditingController _emailControl = new TextEditingController();
-  final TextEditingController _passwordControl = new TextEditingController();
+class RegisterScreen extends StatelessWidget {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nationalityController = TextEditingController();
+  final _dobController = TextEditingController();
+  final _subscriptionController =
+      TextEditingController(text: '7 days free trial');
+  final _paymentMethodController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20.0, 0, 20, 0),
-      child: ListView(
-        shrinkWrap: true,
-        children: <Widget>[
-          SizedBox(height: 10.0),
-          Container(
-            alignment: Alignment.center,
-            margin: EdgeInsets.only(
-              top: 25.0,
-            ),
-            child: Text(
-              "Create an account",
-              style: TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).accentColor,
-              ),
-            ),
-          ),
-          SizedBox(height: 30.0),
-          Card(
-            elevation: 3.0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(5.0),
+    return MaterialApp(
+      title: 'Registration App',
+      home: Scaffold(
+        body: Container(
+          color: const Color(0xFFFFB606),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.only(top: 40.0),
+                  child: Image.asset(
+                    'assets/logo.png', // Replace with your image asset path
+                    height: 150.0,
+                    width: 150.0,
+                  ),
                 ),
-              ),
-              child: TextField(
-                style: TextStyle(
-                  fontSize: 15.0,
-                  color: Colors.black,
+                const SizedBox(height: 20.0),
+                const Text(
+                  'Registration',
+                  style: TextStyle(
+                    fontSize: 48.0,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Sans Serif', // Replace with your desired font
+                  ),
                 ),
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.all(10.0),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                    borderSide: BorderSide(
-                      color: Colors.white,
+                const SizedBox(height: 20.0),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _nameController,
+                          keyboardType: TextInputType.name,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter your name';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Name',
+                            filled: true,
+                            fillColor: Colors.black,
+                            labelStyle: TextStyle(
+                              color:
+                                  Colors.white, // Set label text color to white
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            filled: true,
+                            fillColor: Colors.black,
+                            labelStyle: TextStyle(
+                              color:
+                                  Colors.white, // Set label text color to white
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter your password';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Password',
+                            filled: true,
+                            fillColor: Colors.black,
+                            labelStyle: TextStyle(
+                              color:
+                                  Colors.white, // Set label text color to white
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        TextFormField(
+                          controller: _nationalityController,
+                          keyboardType: TextInputType.text,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter your nationality';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Nationality',
+                            filled: true,
+                            fillColor: Colors.black,
+                            labelStyle: TextStyle(
+                              color:
+                                  Colors.white, // Set label text color to white
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        TextFormField(
+                          controller: _dobController,
+                          keyboardType: TextInputType.datetime,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter your date of birth';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Date of Birth',
+                            filled: true,
+                            fillColor: Colors.black,
+                            labelStyle: TextStyle(
+                              color:
+                                  Colors.white, // Set label text color to white
+                            ),
+                            hintStyle: TextStyle(
+                              color: Colors.white,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        TextFormField(
+                          controller:
+                              TextEditingController(text: '7 days free trial'),
+                          enabled: false,
+                          keyboardType: TextInputType.text,
+                          decoration: InputDecoration(
+                            labelText: 'Subscription Plan',
+                            filled: true,
+                            fillColor: Colors.black,
+                            labelStyle: TextStyle(
+                              color: Colors.white,
+                            ),
+                            hintStyle: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        TextFormField(
+                          controller: _paymentMethodController,
+                          keyboardType: TextInputType.text,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter your preferred payment method';
+                            }
+                            return null;
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Payment Method',
+                            filled: true,
+                            fillColor: Colors.black,
+                            labelStyle: TextStyle(
+                              color:
+                                  Colors.white, // Set label text color to white
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              registerUser();
+                            }
+                          },
+                          child: const Text('Register'),
+                        ),
+                      ],
                     ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ),
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  hintText: "Username",
-                  prefixIcon: Icon(
-                    Icons.perm_identity,
-                    color: Colors.black,
-                  ),
-                  hintStyle: TextStyle(
-                    fontSize: 15.0,
-                    color: Colors.black,
-                  ),
                 ),
-                maxLines: 1,
-                controller: _usernameControl,
-              ),
-            ),
-          ),
-          SizedBox(height: 10.0),
-          Card(
-            elevation: 3.0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(5.0),
-                ),
-              ),
-              child: TextField(
-                style: TextStyle(
-                  fontSize: 15.0,
-                  color: Colors.black,
-                ),
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.all(10.0),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ),
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  hintText: "Email",
-                  prefixIcon: Icon(
-                    Icons.mail_outline,
-                    color: Colors.black,
-                  ),
-                  hintStyle: TextStyle(
-                    fontSize: 15.0,
-                    color: Colors.black,
-                  ),
-                ),
-                maxLines: 1,
-                controller: _emailControl,
-              ),
-            ),
-          ),
-          SizedBox(height: 10.0),
-          Card(
-            elevation: 3.0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(5.0),
-                ),
-              ),
-              child: TextField(
-                style: TextStyle(
-                  fontSize: 15.0,
-                  color: Colors.black,
-                ),
-                decoration: InputDecoration(
-                  contentPadding: EdgeInsets.all(10.0),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(5.0),
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ),
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  hintText: "Password",
-                  prefixIcon: Icon(
-                    Icons.lock_outline,
-                    color: Colors.black,
-                  ),
-                  hintStyle: TextStyle(
-                    fontSize: 15.0,
-                    color: Colors.black,
-                  ),
-                ),
-                obscureText: true,
-                maxLines: 1,
-                controller: _passwordControl,
-              ),
-            ),
-          ),
-          SizedBox(height: 40.0),
-          Container(
-            height: 50.0,
-            child: ElevatedButton(
-              child: Text(
-                "Register".toUpperCase(),
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) {
-                      return HomePage();
-                    },
-                  ),
-                );
-              },
-              //color: Theme.of(context).accentColor,
-            ),
-          ),
-          SizedBox(height: 10.0),
-          Divider(
-            color: Theme.of(context).accentColor,
-          ),
-          SizedBox(height: 10.0),
-          Center(
-            child: Container(
-              width: MediaQuery.of(context).size.width / 2,
-              child: Row(
-                children: <Widget>[
-                  RawMaterialButton(
-                    onPressed: () {},
-                    fillColor: Colors.blue[800],
-                    shape: CircleBorder(),
-                    elevation: 4.0,
-                    child: Padding(
-                      padding: EdgeInsets.all(15),
-                      child: Icon(
-                        Icons.facebook,
-                        color: Colors.white,
-                        size: 30.0,
-                      ),
-                    ),
-                  ),
-                  RawMaterialButton(
-                    onPressed: () {},
-                    fillColor: Colors.white,
-                    shape: CircleBorder(),
-                    elevation: 4.0,
-                    child: Padding(
-                      padding: EdgeInsets.all(15),
-                      child: Icon(
-                        Icons.g_translate,
-                        color: Colors.blue[800],
-                        size: 24.0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
           ),
-          SizedBox(height: 20.0),
-        ],
+        ),
       ),
     );
+  }
+
+  void registerUser() async {
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      // Save user data to Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'name': _nameController.text,
+        'email': _emailController.text,
+        'nationality': _nationalityController.text,
+        'dateOfBirth': _dobController.text,
+        'subscriptionPlan': _subscriptionController.text,
+        'paymentMethod': _paymentMethodController.text,
+      });
+
+      print(
+          'User registered successfully! User ID: ${userCredential.user!.uid}');
+      // Navigate to registration success page or perform any other action
+    } catch (e) {
+      print('Failed to register user. Error: $e');
+    }
   }
 }
