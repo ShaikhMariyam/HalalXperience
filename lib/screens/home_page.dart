@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'register_user.dart';
+import 'login_user.dart';
 
 class MyApp extends StatelessWidget {
   @override
@@ -22,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.red[600],
+      backgroundColor: Color(0xFFE0A420),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -33,9 +35,12 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RegistrationPage()),
+                  MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF202A44),
+              ),
               child: Text('Registration'),
             ),
             SizedBox(height: 16),
@@ -43,9 +48,12 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
                 );
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF202A44),
+              ),
               child: Text('Login'),
             ),
           ],
@@ -58,46 +66,21 @@ class _HomePageState extends State<HomePage> {
 class LogoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 200,
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        shape: BoxShape.circle,
-      ),
-      child: Image.asset(
-        'assets/logo.png',
-        color: Colors.white,
-        width: 60,
-        height: 60,
-      ),
-    );
-  }
-}
-
-class RegistrationPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Registration Page'),
-      ),
-      body: Center(
-        child: Text('Registration Form'),
-      ),
-    );
-  }
-}
-
-class LoginPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Login Page'),
-      ),
-      body: Center(
-        child: Text('Login Form'),
+    return ClipOval(
+      child: Container(
+        width: 250,
+        height: 250,
+        decoration: BoxDecoration(
+          color: Colors.grey[400],
+        ),
+        child: Center(
+          child: Image.asset(
+            'assets/logo.png',
+            color: Color(0xFF202A44),
+            width: 200,
+            height: 200,
+          ),
+        ),
       ),
     );
   }
