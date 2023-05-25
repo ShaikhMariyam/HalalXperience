@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'register_user.dart';
+import 'login_user.dart';
+
 
 class MyApp extends StatelessWidget {
   @override
@@ -47,9 +49,12 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
                 );
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF202A44),
+              ),
               child: Text('Login'),
             ),
           ],
@@ -77,34 +82,6 @@ class LogoWidget extends StatelessWidget {
             height: 200,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class RegistrationPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Registration Page'),
-      ),
-      body: Center(
-        child: Text('Registration Form'),
-      ),
-    );
-  }
-}
-
-class LoginPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Login Page'),
-      ),
-      body: Center(
-        child: Text('Login Form'),
       ),
     );
   }
