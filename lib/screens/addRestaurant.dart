@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,9 +14,23 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _phoneNumberController = TextEditingController();
   TextEditingController _urlController = TextEditingController();
+  List<String> _selectedCuisines = [];
 
   File? _selectedLogo;
   File? _selectedImage;
+
+  List<String> _cuisineOptions = [
+    'Italian',
+    'Mexican',
+    'Chinese',
+    'Indian',
+    'Japanese',
+    'Thai',
+    'Greek',
+    'French',
+    'Spanish',
+    'American',
+  ];
 
   Future<void> _pickImage(ImageSource source, {bool isLogo = false}) async {
     final picker = ImagePicker();
@@ -32,6 +45,28 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
         }
       });
     }
+  }
+
+  void _selectCuisine(String cuisine) {
+    setState(() {
+      if (_selectedCuisines.contains(cuisine)) {
+        _selectedCuisines.remove(cuisine);
+      } else {
+        if (_selectedCuisines.length < 3) {
+          _selectedCuisines.add(cuisine);
+        }
+      }
+    });
+  }
+
+  Widget _buildCuisineChip(String cuisine) {
+    final isSelected = _selectedCuisines.contains(cuisine);
+
+    return FilterChip(
+      label: Text(cuisine),
+      selected: isSelected,
+      onSelected: (_) => _selectCuisine(cuisine),
+    );
   }
 
   @override
@@ -71,6 +106,13 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
                 decoration: const InputDecoration(
                   labelText: 'Website URL',
                 ),
+              ),
+              const SizedBox(height: 16.0),
+              Wrap(
+                spacing: 8.0,
+                children: _cuisineOptions.map((cuisine) {
+                  return _buildCuisineChip(cuisine);
+                }).toList(),
               ),
               const SizedBox(height: 16.0),
               Row(
@@ -184,18 +226,24 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
     String url,
     String? logoUrl,
     String? imageUrl,
-  ) {
+  ) async {
 // Add the restaurant to Firestore
     CollectionReference restaurantsRef =
         FirebaseFirestore.instance.collection('restaurants');
 
-    restaurantsRef.add({
+    DocumentReference newDocRef = restaurantsRef.doc();
+
+    String restaurantID = newDocRef.id;
+
+    await newDocRef.set({
+      'restaurantID': restaurantID,
       'name': name,
       'description': description,
       'phoneNumber': phoneNumber,
       'url': url,
       'logo': logoUrl,
       'image': imageUrl,
+      'cuisines': _selectedCuisines,
     });
   }
 }

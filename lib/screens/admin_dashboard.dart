@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'addHCO.dart';
 import 'addRestaurant.dart';
 import 'HCO.dart';
+import 'restaurant.dart';
 
 class adminPage extends StatelessWidget {
   @override
@@ -17,7 +18,7 @@ class adminPage extends StatelessWidget {
         '/': (context) => HomePage(),
         '/companies': (context) => CompaniesPage(),
         '/products': (context) => ProductsPage(),
-        '/brands': (context) => BrandsPage(),
+        '/restaurant': (context) => RestaurantPage(),
         '/addCompany': (context) => AddCompanyPage(),
         '/addProduct': (context) => AddProductPage(),
         '/addRestaurant': (context) => addRestaurantPage(),
@@ -50,7 +51,7 @@ class HomePage extends StatelessWidget {
                 buildButton(context, 'Companies', Icons.business, '/companies'),
                 buildButton(
                     context, 'Products', Icons.shopping_basket, '/products'),
-                buildButton(context, 'Brands', Icons.label, '/brands'),
+                buildButton(context, 'Brands', Icons.label, '/restaurant'),
                 buildButton(
                     context, 'Add Company', Icons.add_business, '/addCompany'),
                 buildButton(context, 'Add Product', Icons.add_shopping_cart,
@@ -90,10 +91,20 @@ class HomePage extends StatelessWidget {
               context,
               MaterialPageRoute(builder: (context) => AddCompanyPage()),
             );
+          } else if (route == '/companies') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CompaniesPage()),
+            );
           } else if (route == '/addRestaurant') {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => addRestaurantPage()),
+            );
+          } else if (route == '/restaurant') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RestaurantPage()),
             );
           } else {
             Navigator.pushNamed(context, route);
