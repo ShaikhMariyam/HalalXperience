@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'prayer.dart';
 import 'home_page.dart';
 import 'maps.dart';
+import 'user-view/products.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class HalalXperienceApp extends StatelessWidget {
@@ -130,29 +131,65 @@ class HalalXperienceApp extends StatelessWidget {
               color: const Color(0xffFFD700),
             ),
           ),
-          const ListTile(
+          ListTile(
             leading: Icon(Icons.mosque_sharp),
             title: Text('Prayer Timings'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+              );
+            },
           ),
-          const ListTile(
+          ListTile(
             leading: Icon(Icons.restaurant),
             title: Text('Restaurants'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+              );
+            },
           ),
-          const ListTile(
+          ListTile(
             leading: Icon(Icons.star),
             title: Text('Favorites'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+              );
+            },
           ),
-          const ListTile(
+          ListTile(
             leading: Icon(Icons.calendar_today),
             title: Text('Hijri Calendar'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+              );
+            },
           ),
-          const ListTile(
+          ListTile(
             leading: Icon(Icons.fastfood),
-            title: Text('Food & Beverages'),
+            title: Text('Products'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProductsPage()),
+              );
+            },
           ),
-          const ListTile(
+          ListTile(
             leading: Icon(Icons.business),
             title: Text('Halal Organizations'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+              );
+            },
           ),
           ListTile(
             leading: Icon(Icons.logout),
