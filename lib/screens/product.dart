@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'updateRestaurant.dart';
+import 'updateProducts.dart';
 
 class ProductPage extends StatelessWidget {
   @override
@@ -251,8 +251,8 @@ class ProductDetailsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => UpdateRestaurantPage(
-                      restaurantData: ProductData,
+                    builder: (context) => UpdateProductsPage(
+                      productData: ProductData,
                     ),
                   ),
                 );

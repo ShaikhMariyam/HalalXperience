@@ -13,7 +13,8 @@ class _addProductPageState extends State<addProductPage> {
   TextEditingController _nameController = TextEditingController();
   TextEditingController _SKUController = TextEditingController();
   TextEditingController _phoneNumberController = TextEditingController();
-  TextEditingController _urlController = TextEditingController();
+  TextEditingController _CompanyController = TextEditingController();
+  TextEditingController _CountryController = TextEditingController();
   List<String> _selectedCuisines = [];
 
   File? _selectedImage;
@@ -87,16 +88,16 @@ class _addProductPageState extends State<addProductPage> {
               ),
               const SizedBox(height: 16.0),
               TextField(
-                controller: _phoneNumberController,
+                controller: _CompanyController,
                 decoration: const InputDecoration(
-                  labelText: 'Phone Number',
+                  labelText: 'Product Company',
                 ),
               ),
               const SizedBox(height: 16.0),
               TextField(
-                controller: _urlController,
+                controller: _CountryController,
                 decoration: const InputDecoration(
-                  labelText: 'Website URL',
+                  labelText: 'Coutry of Production',
                 ),
               ),
               const SizedBox(height: 16.0),
@@ -129,7 +130,8 @@ class _addProductPageState extends State<addProductPage> {
                     String name = _nameController.text;
                     String SKU = _SKUController.text;
                     String phoneNumber = _phoneNumberController.text;
-                    String url = _urlController.text;
+                    String country = _CountryController.text;
+                    String company = _CompanyController.text;
 
                     String? imageUrl = await uploadFileToStorage(
                         name, _selectedImage, 'image');
@@ -137,8 +139,8 @@ class _addProductPageState extends State<addProductPage> {
                     addProductToFirestore(
                       name,
                       SKU,
-                      phoneNumber,
-                      url,
+                      country,
+                      company,
                       imageUrl,
                     );
 
@@ -194,8 +196,8 @@ class _addProductPageState extends State<addProductPage> {
   void addProductToFirestore(
     String name,
     String SKU,
-    String phoneNumber,
-    String url,
+    String Company,
+    String Country,
     String? imageUrl,
   ) async {
 // Add the Product to Firestore
@@ -209,9 +211,9 @@ class _addProductPageState extends State<addProductPage> {
     await newDocRef.set({
       'productID': productID,
       'name': name,
+      'country': Country,
+      'company': Company,
       'SKU': SKU,
-      'phoneNumber': phoneNumber,
-      'url': url,
       'image': imageUrl,
       'cuisines': _selectedCuisines,
     });
