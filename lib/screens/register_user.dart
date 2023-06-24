@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'user_page.dart';
 
 class RegisterScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
@@ -49,6 +50,7 @@ class RegisterScreen extends StatelessWidget {
                       children: [
                         TextFormField(
                           controller: _nameController,
+                          style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.name,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -69,6 +71,7 @@ class RegisterScreen extends StatelessWidget {
                         const SizedBox(height: 16.0),
                         TextFormField(
                           controller: _emailController,
+                          style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -89,6 +92,7 @@ class RegisterScreen extends StatelessWidget {
                         const SizedBox(height: 16.0),
                         TextFormField(
                           controller: _passwordController,
+                          style: const TextStyle(color: Colors.white),
                           obscureText: true,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -109,6 +113,7 @@ class RegisterScreen extends StatelessWidget {
                         const SizedBox(height: 16.0),
                         TextFormField(
                           controller: _nationalityController,
+                          style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.text,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -129,6 +134,7 @@ class RegisterScreen extends StatelessWidget {
                         const SizedBox(height: 16.0),
                         TextFormField(
                           controller: _dobController,
+                          style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.datetime,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -176,6 +182,7 @@ class RegisterScreen extends StatelessWidget {
                         const SizedBox(height: 16.0),
                         TextFormField(
                           controller: _paymentMethodController,
+                          style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.text,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -197,7 +204,7 @@ class RegisterScreen extends StatelessWidget {
                         ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              registerUser();
+                              registerUser(context);
                             }
                           },
                           child: const Text('Register'),
@@ -214,7 +221,7 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
-  void registerUser() async {
+  void registerUser(BuildContext context) async {
     try {
       UserCredential userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -233,10 +240,16 @@ class RegisterScreen extends StatelessWidget {
         'dateOfBirth': _dobController.text,
         'subscriptionPlan': _subscriptionController.text,
         'paymentMethod': _paymentMethodController.text,
+        'role': 'user',
       });
 
       print(
           'User registered successfully! User ID: ${userCredential.user!.uid}');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => userDashboard()),
+      );
+
       // Navigate to registration success page or perform any other action
     } catch (e) {
       print('Failed to register user. Error: $e');

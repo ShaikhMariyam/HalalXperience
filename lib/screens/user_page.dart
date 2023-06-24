@@ -3,9 +3,11 @@ import 'prayer.dart';
 import 'home_page.dart';
 import 'maps.dart';
 import 'user-view/products.dart';
+import 'user-view/companies.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'Scanner.dart';
 
-class HalalXperienceApp extends StatelessWidget {
+class userDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,6 +18,7 @@ class HalalXperienceApp extends StatelessWidget {
               drawer: _buildDrawer(context),
               appBar: AppBar(
                 title: const Text('HalalXperience'),
+                backgroundColor: Colors.yellow.shade700,
               ),
               body: Container(
                 margin: const EdgeInsets.only(top: 16.0),
@@ -109,6 +112,8 @@ class HalalXperienceApp extends StatelessWidget {
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          primary:
+              Colors.yellow.shade700, // Set the color to Colors.yellow.shade700
         ),
         onPressed: () {
           // TODO: Implement button functionality
@@ -137,7 +142,7 @@ class HalalXperienceApp extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+                MaterialPageRoute(builder: (context) => userDashboard()),
               );
             },
           ),
@@ -147,7 +152,7 @@ class HalalXperienceApp extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+                MaterialPageRoute(builder: (context) => RestaurantPage()),
               );
             },
           ),
@@ -157,7 +162,7 @@ class HalalXperienceApp extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+                MaterialPageRoute(builder: (context) => userDashboard()),
               );
             },
           ),
@@ -167,7 +172,7 @@ class HalalXperienceApp extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+                MaterialPageRoute(builder: (context) => userDashboard()),
               );
             },
           ),
@@ -187,7 +192,17 @@ class HalalXperienceApp extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+                MaterialPageRoute(builder: (context) => CompaniesPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.qr_code_scanner_rounded),
+            title: Text('Barcode Scanner'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ScannerPage()),
               );
             },
           ),
@@ -220,7 +235,7 @@ class HalalXperienceApp extends StatelessWidget {
             context,
             MaterialPageRoute(
                 builder: (context) =>
-                    restaurantPage()), // Replace with the desired screen
+                    RestaurantPage()), // Replace with the desired screen
           );
         },
         child: Row(
@@ -302,7 +317,7 @@ class HalalXperienceApp extends StatelessWidget {
     Navigator.pop(context); // Close the drawer
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => MyApp()),
+      MaterialPageRoute(builder: (context) => startPage()),
     );
   }
 }

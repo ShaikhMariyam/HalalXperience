@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:halalxperience/screens/maps.dart';
 import 'addHCO.dart';
 import 'addRestaurant.dart';
 import 'addProduct.dart';
@@ -7,11 +8,8 @@ import 'HCO.dart';
 import 'restaurant.dart';
 import 'product.dart';
 import 'login_user.dart';
-import 'home_page.dart';
-import 'register_admin.dart';
-import 'Users.dart';
 
-class adminPage extends StatelessWidget {
+class HCO_Dashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,13 +19,10 @@ class adminPage extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => HomePage(),
-        '/companies': (context) => CompaniesPage(),
-        '/products': (context) => ProductPage(),
-        '/restaurant': (context) => Restaurant(),
-        '/addCompany': (context) => AddCompanyPage(),
-        '/addProduct': (context) => Users(),
-        '/addRestaurant': (context) => addRestaurantPage(),
-        '/addAdmin': (context) => RegisterAdmin(),
+        '/registerProducts': (context) => addProductPage(),
+        '/registerRestaurants': (context) => addRestaurantPage(),
+        '/ViewProducts': (context) => ProductPage(),
+        '/ViewRestaurants': (context) => Restaurant(),
       },
     );
   }
@@ -39,7 +34,9 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.yellow.shade700,
-        title: const Text('HalalXperience'),
+        title: const Text(
+          'HalalXperience',
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -47,7 +44,7 @@ class HomePage extends StatelessWidget {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => startPage()),
+                MaterialPageRoute(builder: (context) => LoginScreen()),
               );
             },
           ),
@@ -59,21 +56,18 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             GridView.count(
-              crossAxisCount: 4,
+              crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                buildButton(context, 'Companies', Icons.business, '/companies'),
+                buildButton(context, 'Register Products', Icons.business,
+                    '/registerProducts'),
+                buildButton(context, 'Register Restaurants',
+                    Icons.shopping_basket, '/registerRestaurants'),
                 buildButton(
-                    context, 'Products', Icons.shopping_basket, '/products'),
-                buildButton(context, 'Restaurants', Icons.label, '/restaurant'),
-                buildButton(
-                    context, 'Add Company', Icons.add_business, '/addCompany'),
-                buildButton(context, 'Add Product', Icons.add_shopping_cart,
-                    '/addProduct'),
-                buildButton(context, 'Add Restaurant', Icons.add_circle_outline,
-                    '/addRestaurant'),
-                buildButton(context, 'Add Admin', Icons.business, '/addAdmin'),
+                    context, 'View Products', Icons.label, '/ViewProducts'),
+                buildButton(context, 'View Restaurants', Icons.add_business,
+                    '/ViewRestaurants'),
               ],
             ),
             const SizedBox(height: 16.0),
@@ -101,30 +95,25 @@ class HomePage extends StatelessWidget {
           primary: Colors.yellow.shade700,
         ),
         onPressed: () {
-          if (route == '/addCompany') {
+          if (route == '/registerProducts') {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => AddCompanyPage()),
             );
-          } else if (route == '/companies') {
+          } else if (route == '/registerRestaurants') {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => CompaniesPage()),
             );
-          } else if (route == '/restaurant') {
+          } else if (route == '/ViewProducts') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => addRestaurantPage()),
+            );
+          } else if (route == '/ViewRestaurants') {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => Restaurant()),
-            );
-          } else if (route == '/product') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ProductPage()),
-            );
-          } else if (route == '/AddAdmin') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RegisterAdmin()),
             );
           } else {
             Navigator.pushNamed(context, route);

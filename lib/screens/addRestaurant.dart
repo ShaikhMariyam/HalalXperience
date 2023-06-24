@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class addRestaurantPage extends StatefulWidget {
   @override
@@ -31,6 +32,8 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
     'Spanish',
     'American',
   ];
+
+  LatLng? _selectedLocation;
 
   Future<void> _pickImage(ImageSource source, {bool isLogo = false}) async {
     final picker = ImagePicker();
@@ -115,38 +118,51 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
                 }).toList(),
               ),
               const SizedBox(height: 16.0),
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () =>
-                        _pickImage(ImageSource.gallery, isLogo: true),
-                    child: const Text('Upload Logo'),
-                  ),
-                  const SizedBox(width: 16.0),
-                  if (_selectedLogo != null)
-                    Image.file(
-                      _selectedLogo!,
-                      width: 80.0,
-                      height: 80.0,
-                    ),
-                ],
+              ElevatedButton(
+                onPressed: () => _pickImage(ImageSource.gallery, isLogo: true),
+                child: const Text('Upload Logo'),
               ),
               const SizedBox(height: 16.0),
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _pickImage(ImageSource.gallery),
-                    child: const Text('Upload Restaurant Image'),
-                  ),
-                  const SizedBox(width: 16.0),
-                  if (_selectedImage != null)
-                    Image.file(
-                      _selectedImage!,
-                      width: 80.0,
-                      height: 80.0,
-                    ),
-                ],
+              if (_selectedLogo != null)
+                Image.file(
+                  _selectedLogo!,
+                  width: 80.0,
+                  height: 80.0,
+                ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () => _pickImage(ImageSource.gallery),
+                child: const Text('Upload Restaurant Image'),
               ),
+              const SizedBox(height: 16.0),
+              if (_selectedImage != null)
+                Image.file(
+                  _selectedImage!,
+                  width: 80.0,
+                  height: 80.0,
+                ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MapPickerPage(
+                        onLocationSelected: (location) {
+                          setState(() {
+                            _selectedLocation = location;
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Select Location'),
+              ),
+              const SizedBox(height: 16.0),
+              if (_selectedLocation != null)
+                Text(
+                    'Selected Location: ${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}'),
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () async {
@@ -168,6 +184,7 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
                       url,
                       logoUrl,
                       imageUrl,
+                      _selectedLocation,
                     );
 
                     showDialog(
@@ -226,8 +243,9 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
     String url,
     String? logoUrl,
     String? imageUrl,
+    LatLng? location,
   ) async {
-// Add the restaurant to Firestore
+    // Add the restaurant to Firestore
     CollectionReference restaurantsRef =
         FirebaseFirestore.instance.collection('restaurants');
 
@@ -244,6 +262,61 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
       'logo': logoUrl,
       'image': imageUrl,
       'cuisines': _selectedCuisines,
+      'location': location != null
+          ? GeoPoint(location.latitude, location.longitude)
+          : null,
     });
+  }
+}
+
+class MapPickerPage extends StatefulWidget {
+  final Function(LatLng) onLocationSelected;
+
+  MapPickerPage({required this.onLocationSelected});
+
+  @override
+  _MapPickerPageState createState() => _MapPickerPageState();
+}
+
+class _MapPickerPageState extends State<MapPickerPage> {
+  LatLng? _selectedLocation;
+
+  void _onMapTap(LatLng location) {
+    setState(() {
+      _selectedLocation = location;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Select Location'),
+      ),
+      body: GoogleMap(
+        initialCameraPosition: const CameraPosition(
+          target: LatLng(0, 0),
+          zoom: 15,
+        ),
+        onTap: _onMapTap,
+        markers: _selectedLocation != null
+            ? {
+                Marker(
+                  markerId: MarkerId('selectedLocation'),
+                  position: _selectedLocation!,
+                ),
+              }
+            : {},
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _selectedLocation != null
+            ? () {
+                widget.onLocationSelected(_selectedLocation!);
+                Navigator.pop(context);
+              }
+            : null,
+        child: const Icon(Icons.check),
+      ),
+    );
   }
 }
