@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'register_user.dart';
 import 'login_user.dart';
 
-
-class MyApp extends StatelessWidget {
+class startPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

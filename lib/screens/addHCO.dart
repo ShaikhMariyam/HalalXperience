@@ -59,6 +59,14 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
                   ),
                 ),
                 const SizedBox(height: 16.0),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    // Set label text color to white
+                  ),
+                ),
+                const SizedBox(height: 16.0),
                 TextField(
                   controller: _phoneController,
                   decoration: const InputDecoration(
@@ -184,6 +192,22 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
         ));
   }
 
+  void registerHCO() async {
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      print(
+          'User registered successfully! User ID: ${userCredential.user!.uid}');
+      // Navigate to registration success page or perform any other action
+    } catch (e) {
+      print('Failed to register user. Error: $e');
+    }
+  }
+
   Future<String?> uploadLogoToStorage(String uid, File? logoFile) async {
     if (logoFile == null) return null;
 
@@ -213,7 +237,7 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
   ) {
     // Add the company to Firestore
     CollectionReference companiesRef =
-        FirebaseFirestore.instance.collection('companies');
+        FirebaseFirestore.instance.collection('HCO');
 
     companiesRef.add({
       'name': name,

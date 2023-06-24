@@ -144,7 +144,7 @@ class LoginScreen extends StatelessWidget {
         // Navigate to the user screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HalalXperienceApp()),
+          MaterialPageRoute(builder: (context) => userDashboard()),
         );
       }
     } catch (e) {
