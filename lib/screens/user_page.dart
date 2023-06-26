@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'prayer.dart';
 import 'home_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'maps.dart';
 import 'user-view/products.dart';
 import 'user-view/companies.dart';
@@ -172,7 +173,7 @@ class userDashboard extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => userDashboard()),
+                MaterialPageRoute(builder: (context) => CompaniesPage()),
               );
             },
           ),
@@ -313,11 +314,16 @@ class userDashboard extends StatelessWidget {
     );
   }
 
-  void _performLogout(BuildContext context) {
-    Navigator.pop(context); // Close the drawer
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => startPage()),
-    );
+  void _performLogout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => startPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      print('Failed to log out. Error: $e');
+    }
   }
 }

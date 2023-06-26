@@ -3,13 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'admin_dashboard.dart';
 import 'user_page.dart';
+import 'HCO_dashboard.dart';
+
+enum UserType { user, admin, hco }
 
 class LoginScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  @override
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -26,7 +28,7 @@ class LoginScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.only(top: 40.0),
                         child: Image.asset(
-                          'assets/logo.png', // Replace with your image asset path
+                          'assets/logo.png',
                           height: 150.0,
                           width: 150.0,
                         ),
@@ -37,8 +39,7 @@ class LoginScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 48.0,
                           fontWeight: FontWeight.bold,
-                          fontFamily:
-                              'Sans Serif', // Replace with your desired font
+                          fontFamily: 'Sans Serif',
                         ),
                       ),
                       const SizedBox(height: 20.0),
@@ -63,8 +64,7 @@ class LoginScreen extends StatelessWidget {
                                   filled: true,
                                   fillColor: Colors.black,
                                   labelStyle: TextStyle(
-                                    color: Colors
-                                        .white, // Set label text color to white
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -84,8 +84,7 @@ class LoginScreen extends StatelessWidget {
                                   filled: true,
                                   fillColor: Colors.black,
                                   labelStyle: TextStyle(
-                                    color: Colors
-                                        .white, // Set label text color to white
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -126,29 +125,102 @@ class LoginScreen extends StatelessWidget {
         password: _passwordController.text,
       );
 
-      // Retrieve the user data from Firestore
-      DocumentSnapshot userData = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
+      print("object");
 
-      // Check the role of the user
-      String role = userData.get('role');
-      if (role == 'admin') {
-        // Navigate to the admin screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => adminPage()),
-        );
-      } else {
-        // Navigate to the user screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => userDashboard()),
-        );
+      // Check user type in three different databases
+      UserType userType = await checkUserType(userCredential.user!.uid);
+      print("object");
+
+      // Forward to the appropriate dashboard based on user type
+      switch (userType) {
+        case UserType.admin:
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => adminPage(),
+            ),
+            (route) => false, // Remove all previous routes
+          );
+          break;
+        case UserType.user:
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => userDashboard(),
+            ),
+            (route) => false, // Remove all previous routes
+          );
+          break;
+        case UserType.admin:
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => adminPage(),
+            ),
+            (route) => false, // Remove all previous routes
+          );
+          break;
+        case UserType.hco:
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HCO_Dashboard(),
+            ),
+            (route) => false, // Remove all previous routes
+          );
+          break;
+        default:
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Login Failed'),
+                content: Text('Account does not exist in the database!'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+          break;
       }
     } catch (e) {
       print('Failed to log in. Error: $e');
     }
+  }
+
+  Future<UserType> checkUserType(String uid) async {
+// Check if the user exists in the 'users' collection
+
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    if (userDoc.exists) {
+      print("user blah blah");
+      return UserType.user;
+    }
+
+// Check if the user exists in the 'admin' collection
+    DocumentSnapshot adminDoc =
+        await FirebaseFirestore.instance.collection('Admin').doc(uid).get();
+    if (adminDoc.exists) {
+      print("admin blah blah");
+      return UserType.admin;
+    }
+
+// Check if the user exists in the 'HCO' collection
+    DocumentSnapshot hcoDoc =
+        await FirebaseFirestore.instance.collection('HCO').doc(uid).get();
+    if (hcoDoc.exists) {
+      print("hco blah blah");
+      return UserType.hco;
+    }
+
+// Default to no user type if not found in any database
+    return UserType.user; // Return a default user type
   }
 }

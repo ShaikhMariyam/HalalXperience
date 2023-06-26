@@ -4,7 +4,8 @@
         android:label="halalxperience"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <activity
+<meta-data android:name="com.google.android.geo.API_KEY"
+               android:value="AIzaSyAXrVT2hI_PXJiGofxx_3EPaY7bdYDHYGg"/>        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"

@@ -216,6 +216,7 @@ class _addProductPageState extends State<addProductPage> {
       'SKU': SKU,
       'image': imageUrl,
       'cuisines': _selectedCuisines,
+      'favorites': 0,
     });
   }
 }

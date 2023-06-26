@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CompaniesPage extends StatelessWidget {
   @override
@@ -37,36 +38,115 @@ class CompaniesPage extends StatelessWidget {
               final name = company.get('name');
               final email = company.get('email');
 
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          CompanyDetailsPage(company: company),
+              DocumentReference favoriteRef = FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .collection('favorite')
+                  .doc(company.id);
+
+              return FutureBuilder<DocumentSnapshot>(
+                future: favoriteRef.get(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  bool isFavorite = snapshot.hasData && snapshot.data!.exists;
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CompanyDetailsPage(company: company),
+                        ),
+                      );
+                    },
+                    child: ListTile(
+                      leading: logoUrl != null && logoUrl.isNotEmpty
+                          ? Image.network(
+                              logoUrl,
+                              width: 48.0,
+                              height: 48.0,
+                            )
+                          : Container(
+                              width: 48.0,
+                              height: 48.0,
+                              color: Colors.grey,
+                            ),
+                      title: Text(name ?? 'Unknown'),
+                      subtitle: Text(email ?? 'Unknown'),
+                      trailing: FavoriteButton(
+                        company: company,
+                        isFavorite: isFavorite,
+                      ),
                     ),
                   );
                 },
-                child: ListTile(
-                  leading: logoUrl != null && logoUrl.isNotEmpty
-                      ? Image.network(
-                          logoUrl,
-                          width: 48.0,
-                          height: 48.0,
-                        )
-                      : Container(
-                          width: 48.0,
-                          height: 48.0,
-                          color: Colors.grey,
-                        ),
-                  title: Text(name ?? 'Unknown'),
-                  subtitle: Text(email ?? 'Unknown'),
-                ),
               );
             },
           );
         },
       ),
+    );
+  }
+}
+
+class FavoriteButton extends StatefulWidget {
+  final DocumentSnapshot company;
+  final bool isFavorite;
+
+  FavoriteButton({required this.company, required this.isFavorite});
+
+  @override
+  _FavoriteButtonState createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<FavoriteButton> {
+  int favoriteCount = 0;
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    favoriteCount = widget.company.get('favorite') ?? 0;
+    isFavorite = widget.isFavorite;
+  }
+
+  void toggleFavorite() {
+    setState(() {
+      isFavorite = !isFavorite;
+      favoriteCount += isFavorite ? 1 : -1;
+    });
+
+    CollectionReference favoritesCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('favorite');
+
+    if (isFavorite) {
+      // Add company to favorites and increment favorite count
+      favoritesCollection.doc(widget.company.id).set({'favorite': true});
+      FirebaseFirestore.instance
+          .collection('companies')
+          .doc(widget.company.id)
+          .update({'favorite': FieldValue.increment(1)});
+    } else {
+      // Remove company from favorites and decrement favorite count
+      favoritesCollection.doc(widget.company.id).delete();
+      FirebaseFirestore.instance
+          .collection('companies')
+          .doc(widget.company.id)
+          .update({'favorite': FieldValue.increment(-1)});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        isFavorite ? Icons.favorite : Icons.favorite_border,
+        color: isFavorite ? Colors.red : null,
+      ),
+      onPressed: toggleFavorite,
     );
   }
 }
@@ -86,6 +166,7 @@ class CompanyDetailsPage extends StatelessWidget {
     final registrationNumber = company.get('registrationNumber');
     final certificationValidity = company.get('certificationValidity');
     final halalStandards = company.get('halalStandards');
+    final int favorite = company.get('favorite');
 
     return Scaffold(
       appBar: AppBar(
@@ -112,6 +193,9 @@ class CompanyDetailsPage extends StatelessWidget {
             Text(
                 'Certification Validity: ${certificationValidity ?? 'Unknown'}'),
             Text('Halal Standards: ${halalStandards ?? 'Unknown'}'),
+            FavoriteButton(
+                company: company, isFavorite: favorite != null && favorite > 0),
+            Text('Favorite Count: ${favorite ?? 'Unknown'}'),
           ],
         ),
       ),
