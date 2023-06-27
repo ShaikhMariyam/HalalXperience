@@ -280,7 +280,7 @@ class userDashboard extends StatelessWidget {
           children: [
             Image.network(
               logo,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
               height: 150.0,
             ),
             Padding(
