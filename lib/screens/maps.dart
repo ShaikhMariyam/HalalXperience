@@ -1,221 +1,197 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'user-view/restaurants.dart';
 
-class RestaurantsPage extends StatelessWidget {
-  RestaurantsPage({Key? key}) : super(key: key);
+class RestaurantsPage extends StatefulWidget {
+  @override
+  _RestaurantsPageState createState() => _RestaurantsPageState();
+}
+
+class _RestaurantsPageState extends State<RestaurantsPage> {
+  late Stream<QuerySnapshot> _restaurantsStream;
+  TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _restaurantsStream =
+        FirebaseFirestore.instance.collection('restaurants').snapshots();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Restaurants',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Restaurants'),
-        ),
-        body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream:
-              FirebaseFirestore.instance.collection('restaurants').snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              final data = snapshot.data!.docs;
-              return ListView.builder(
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                  final restaurantName = data[index].data()['name'];
-                  final restaurantEmail = data[index].data()['url'];
-                  final restaurantDesc = data[index].data()['description'];
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Restaurants List'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearch(
+                  context: context, delegate: RestaurantSearchDelegate());
+            },
+          ),
+        ],
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _restaurantsStream,
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
 
-                  return RestaurantDetails(
-                    restaurantName: restaurantName,
-                    restaurantEmail: restaurantEmail,
-                    restaurantDesc: restaurantDesc,
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+            return Center(
+              child: Text('No Restaurants found.'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (BuildContext context, int index) {
+              var restaurant = snapshot.data!.docs[index];
+              final RImage = restaurant.get('image');
+              final name = restaurant.get('name');
+              final url = restaurant.get('url');
+              final Rid = restaurant.get('restaurantID');
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RestaurantPage(restaurantId: Rid),
+                    ),
                   );
                 },
+                child: ListTile(
+                  leading: RImage != null && RImage.isNotEmpty
+                      ? Image.network(
+                          RImage,
+                          width: 48.0,
+                          height: 48.0,
+                        )
+                      : Container(
+                          width: 48.0,
+                          height: 48.0,
+                          color: Colors.grey,
+                        ),
+                  title: Text(name ?? 'Unknown'),
+                  subtitle: Text(url ?? 'Unknown'),
+                ),
               );
-            } else if (snapshot.hasError) {
-              return const Center(
-                child: Text('Error fetching data from Firestore'),
-              );
-            } else {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
-        ),
+            },
+          );
+        },
       ),
     );
   }
 }
 
-class RestaurantDetails extends StatelessWidget {
-  final String restaurantName;
-  final String restaurantEmail;
-  final String restaurantDesc;
-
-  RestaurantDetails({
-    required this.restaurantName,
-    required this.restaurantEmail,
-    required this.restaurantDesc,
-  });
-
+class RestaurantSearchDelegate extends SearchDelegate {
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ImageSection(restaurantName: restaurantName),
-        Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                restaurantName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                restaurantEmail,
-                style: TextStyle(
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
-          ),
-        ),
-        ButtonSection(),
-        Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(
-            restaurantDesc,
-            textAlign: TextAlign.justify,
-            softWrap: true,
-          ),
-        ),
-      ],
-    );
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
   }
-}
-
-class ImageSection extends StatelessWidget {
-  final String restaurantName;
-
-  ImageSection({required this.restaurantName});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('restaurants').snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final data = snapshot.data!.docs;
-          final imageUrls =
-              data.map((docSnapshot) => docSnapshot.data()['image']).toList();
-          final logoUrls =
-              data.map((docSnapshot) => docSnapshot.data()['logo']).toList();
-
-          return CarouselSlider.builder(
-            itemCount: imageUrls.length,
-            itemBuilder: (BuildContext context, int index, _) {
-              final imageUrl = imageUrls[index];
-              final logoUrl = logoUrls[index];
-
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-                    imageUrl,
-                    width: 600,
-                    height: 240,
-                    fit: BoxFit.cover,
-                  ),
-                  Image.network(
-                    logoUrl,
-                    width: 600,
-                    height: 240,
-                    fit: BoxFit.cover,
-                  ),
-                ],
-              );
-            },
-            options: CarouselOptions(
-              height: 240,
-              viewportFraction: 1.0,
-              enableInfiniteScroll: true,
-              autoPlay: true,
-              autoPlayInterval: Duration(seconds: 3),
-              autoPlayAnimationDuration: Duration(milliseconds: 800),
-              autoPlayCurve: Curves.fastOutSlowIn,
-              enlargeCenterPage: true,
-              scrollDirection: Axis.horizontal,
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return const Center(
-            child: Text('Error fetching images from Firestore'),
-          );
-        } else {
-          return Container(
-            height: 240,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
       },
     );
   }
-}
 
-class ButtonSection extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    Color color = Theme.of(context).primaryColorDark;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildButtonColumn(color, Icons.call, 'CALL'),
-        _buildButtonColumn(color, Icons.near_me, 'ROUTE'),
-        _buildButtonColumn(color, Icons.share, 'SHARE'),
-      ],
-    );
+  Widget buildResults(BuildContext context) {
+    return _buildSearchResults(context, query);
   }
 
-  Column _buildButtonColumn(Color color, IconData icon, String label) {
-    String url =
-        'https://www.google.com/maps/search/?api=1&query=Pizza+Hut+Malaysia';
-    if (label == 'ROUTE') {
-      url =
-          'https://www.google.com/maps/dir/?api=1&destination=Pizza+Hut+Malaysia';
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    if (query.isEmpty) {
+      return Container();
     }
+    return _buildSearchResults(context, query.toLowerCase());
+  }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: () {
-            launch(url);
+  Widget _buildSearchResults(BuildContext context, String query) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('restaurants')
+          .where('name', isGreaterThanOrEqualTo: query)
+          .snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text('No Restaurants found.'),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (BuildContext context, int index) {
+            var restaurant = snapshot.data!.docs[index];
+            final RImage = restaurant.get('image');
+            final name = restaurant.get('name');
+            final url = restaurant.get('url');
+            final Rid = restaurant.get('restaurantID');
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RestaurantPage(restaurantId: Rid),
+                  ),
+                );
+              },
+              child: ListTile(
+                leading: RImage != null && RImage.isNotEmpty
+                    ? Image.network(
+                        RImage,
+                        width: 48.0,
+                        height: 48.0,
+                      )
+                    : Container(
+                        width: 48.0,
+                        height: 48.0,
+                        color: Colors.grey,
+                      ),
+                title: Text(name ?? 'Unknown'),
+                subtitle: Text(url ?? 'Unknown'),
+              ),
+            );
           },
-          child: Icon(icon, color: color),
-        ),
-        Container(
-          margin: const EdgeInsets.only(top: 8),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              color: color,
-            ),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
