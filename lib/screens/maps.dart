@@ -3,8 +3,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-class RestaurantPage extends StatelessWidget {
-  RestaurantPage({Key? key}) : super(key: key);
+class RestaurantsPage extends StatelessWidget {
+  RestaurantsPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

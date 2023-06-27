@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart'
+    as scanner;
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ScannerPage extends StatefulWidget {
   @override
@@ -7,41 +11,155 @@ class ScannerPage extends StatefulWidget {
 }
 
 class _ScannerPageState extends State<ScannerPage> {
-  @override
-  void initState() {
-    super.initState();
-    _scanBarcode();
-  }
+  String barcodeResult = '';
+  PickedFile? pickedFile;
+  Map<String, dynamic>? productInfo;
 
   Future<void> _scanBarcode() async {
-    String barcodeResult;
     try {
-      barcodeResult = await FlutterBarcodeScanner.scanBarcode(
+      final result = await scanner.FlutterBarcodeScanner.scanBarcode(
         '#ff6666', // Color for the scan button
         'Cancel', // Text for the cancel button
         true, // Show flash icon
-        ScanMode.DEFAULT, // Scan mode
+        scanner.ScanMode.BARCODE, // Scan mode
       );
+      if (!mounted) return;
+      setState(() {
+        barcodeResult = result;
+        productInfo = null; // Reset the product information
+      });
+
+      // Get the product information from Firebase
+      productInfo = await getProductInfo(barcodeResult);
+
+      if (productInfo != null && productInfo!.isNotEmpty) {
+        // Display the product information in a dialog
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Product Information'),
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.network(
+                    productInfo!['image'],
+                    alignment: Alignment.center,
+                    width: 200,
+                    height: 200,
+                  ),
+                  Text('Name: ${productInfo!['name']}'),
+                  Text('SKU: ${productInfo!['SKU']}'),
+                  Text('Company: ${productInfo!['company']}'),
+                  Text('Country: ${productInfo!['country']}'),
+                  const Text('Cuisines:'),
+                  for (var cuisine in productInfo!['cuisines'])
+                    Text(' • $cuisine'),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // No product found
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Product Not Found'),
+              content: const Text('Product not found in the database.'),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      }
     } catch (e) {
-      barcodeResult = 'Error: $e';
+      setState(() {
+        barcodeResult = 'Error: $e';
+      });
     }
+  }
 
-    if (!mounted) return;
+  Future<void> _uploadBarcode() async {
+    final status = await Permission.storage.request();
 
-    setState(() {
-      // Handle the barcode result here
-    });
+    if (status.isGranted) {
+      pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        // Get the barcode from the image
+        final barcode = await scanner.FlutterBarcodeScanner.scanBarcode(
+          '#ff6666', // Color for the scan button
+          'Cancel', // Text for the cancel button
+          true, // Show flash icon
+          scanner.ScanMode.BARCODE, // Scan mode
+        );
+        setState(() {
+          barcodeResult = barcode;
+          productInfo = null; // Reset the product information
+        });
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> getProductInfo(String barcode) async {
+    // Get the product information from Firebase
+    final productSnapshot = await FirebaseFirestore.instance
+        .collection('products')
+        .where('SKU', isEqualTo: barcode)
+        .get();
+
+    if (productSnapshot.size > 0) {
+      // Return the product information
+      return productSnapshot.docs[0].data();
+    } else {
+      // No product found
+      return {};
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Barcode Scanner'),
+        title: const Text('Barcode Scanner'),
       ),
       body: Center(
-        child:
-            CircularProgressIndicator(), // Show a loading indicator while scanning
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: _scanBarcode,
+              child: const Text('Scan Barcode'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _uploadBarcode,
+              child: const Text('Upload Barcode'),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Barcode Result: $barcodeResult',
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

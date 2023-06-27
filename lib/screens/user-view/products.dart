@@ -77,7 +77,7 @@ class ProductTile extends StatelessWidget {
                             productData['image'],
                             width: 200.0,
                             height: 200.0,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           )
                         : Container(
                             width: 200.0,
@@ -120,7 +120,7 @@ class ProductTile extends StatelessWidget {
                       productData['image'],
                       width: 80.0,
                       height: 80.0,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                     )
                   : Container(
                       width: 80.0,
@@ -136,9 +136,12 @@ class ProductTile extends StatelessWidget {
                 style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8.0),
-              // Display additional product information
-              // Customize the layout as needed
-              Text('SKU: ${productData['SKU']}'),
+              Text(
+                productData['SKU'],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.normal),
+              ),
             ],
           ),
         ),

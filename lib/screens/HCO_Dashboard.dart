@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:halalxperience/screens/maps.dart';
-import 'addHCO.dart';
 import 'addRestaurant.dart';
 import 'addProduct.dart';
 import 'HCO.dart';
@@ -98,17 +97,17 @@ class HomePage extends StatelessWidget {
           if (route == '/registerProducts') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => AddCompanyPage()),
+              MaterialPageRoute(builder: (context) => addProductPage()),
             );
           } else if (route == '/registerRestaurants') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CompaniesPage()),
+              MaterialPageRoute(builder: (context) => addRestaurantPage()),
             );
           } else if (route == '/ViewProducts') {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => addRestaurantPage()),
+              MaterialPageRoute(builder: (context) => ProductPage()),
             );
           } else if (route == '/ViewRestaurants') {
             Navigator.push(

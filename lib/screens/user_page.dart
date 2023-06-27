@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'prayer.dart';
 import 'home_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'maps.dart';
 import 'user-view/products.dart';
 import 'user-view/companies.dart';
+import 'user-view/restaurants.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'Scanner.dart';
 
 class userDashboard extends StatelessWidget {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -92,7 +97,37 @@ class userDashboard extends StatelessWidget {
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
-                          children: _buildRestaurantList(context),
+                          children: [
+                            StreamBuilder<QuerySnapshot>(
+                              stream: _firestore
+                                  .collection('restaurants')
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  final restaurants = snapshot.data!.docs;
+                                  return Column(
+                                    children: restaurants.map((doc) {
+                                      final data =
+                                          doc.data() as Map<String, dynamic>;
+                                      return _buildRestaurantCard(
+                                        logo: data['logo'],
+                                        name: data['name'],
+                                        url: data['url'],
+                                        id: data['restaurantID'],
+                                        cuisines:
+                                            List<String>.from(data['cuisines']),
+                                        context: context,
+                                      );
+                                    }).toList(),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Text('Error: ${snapshot.error}');
+                                } else {
+                                  return CircularProgressIndicator();
+                                }
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -152,7 +187,7 @@ class userDashboard extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => RestaurantPage()),
+                MaterialPageRoute(builder: (context) => RestaurantsPage()),
               );
             },
           ),
@@ -172,7 +207,7 @@ class userDashboard extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => userDashboard()),
+                MaterialPageRoute(builder: (context) => CompaniesPage()),
               );
             },
           ),
@@ -219,52 +254,66 @@ class userDashboard extends StatelessWidget {
   }
 
   Widget _buildRestaurantCard({
-    required String imagePath,
+    required String logo,
     required String name,
-    required String distance,
-    required String travelingTime,
-    required String cuisine,
+    required String url,
+    required String id,
+    required List<String> cuisines,
     required BuildContext context,
   }) {
     return Card(
       elevation: 2.0,
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: GestureDetector(
+      child: InkWell(
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) =>
-                    RestaurantPage()), // Replace with the desired screen
+                builder: (context) => RestaurantPage(
+                    restaurantId: id)), // Replace with the desired screen
           );
         },
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: 80.0,
-              height: 80.0,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(imagePath),
-                  fit: BoxFit.cover,
-                ),
-                borderRadius: BorderRadius.circular(4.0),
-              ),
+            Image.network(
+              logo,
+              fit: BoxFit.cover,
+              height: 150.0,
             ),
-            const SizedBox(width: 16.0),
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
-                        fontSize: 16.0, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 4.0),
-                  Text('Distance: $distance'),
-                  Text('Traveling Time: $travelingTime'),
-                  Text('Cuisine: $cuisine'),
+                  SizedBox(height: 4.0),
+                  Text(
+                    url,
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 4.0),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: cuisines.map((cuisine) {
+                      return Text(
+                        cuisine,
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.grey[600],
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ],
               ),
             ),
@@ -274,38 +323,6 @@ class userDashboard extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildRestaurantList(BuildContext context) {
-    // Dummy data for demonstration purposes
-    List<Map<String, String>> restaurants = [
-      {
-        'imagePath': 'assets/image.jpg',
-        'name': 'Pizza Hut',
-        'distance': '1.2 km',
-        'travelingTime': '5 mins',
-        'cuisine': 'Italian, Fast Food',
-      },
-      {
-        'imagePath': 'assets/image.jpg',
-        'name': 'Restaurant 2',
-        'distance': '0.8 km',
-        'travelingTime': '3 mins',
-        'cuisine': 'Mexican',
-      },
-      // Add more restaurant data here
-    ];
-
-    return restaurants.map((restaurant) {
-      return _buildRestaurantCard(
-        imagePath: restaurant['imagePath']!,
-        name: restaurant['name']!,
-        distance: restaurant['distance']!,
-        travelingTime: restaurant['travelingTime']!,
-        cuisine: restaurant['cuisine']!,
-        context: context,
-      );
-    }).toList();
-  }
-
   void _navigateToPrayerTimesApp(BuildContext context) {
     Navigator.push(
       context,
@@ -313,11 +330,10 @@ class userDashboard extends StatelessWidget {
     );
   }
 
-  void _performLogout(BuildContext context) {
-    Navigator.pop(context); // Close the drawer
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => startPage()),
-    );
+  void _performLogout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => HomePage()),
+        (Route<dynamic> route) => false);
   }
 }
