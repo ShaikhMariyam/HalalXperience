@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProductsPage extends StatelessWidget {
   @override
@@ -8,143 +9,272 @@ class ProductsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Products'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('products').snapshots(),
-          builder:
-              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            }
-
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            if (snapshot.data!.docs.isEmpty) {
-              return Center(
-                child: Text('No products found.'),
-              );
-            }
-
-            return GridView.count(
-              crossAxisCount: 2, // Set the number of columns
-              crossAxisSpacing: 8.0, // Set the spacing between columns
-              mainAxisSpacing: 8.0, // Set the spacing between rows
-              children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                Map<String, dynamic> productData =
-                    document.data() as Map<String, dynamic>;
-                productData['documentId'] =
-                    document.id; // Add this line to assign the documentId
-
-                return ProductTile(productData: productData);
-              }).toList(),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('products').snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
             );
-          },
-        ),
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+            return Center(
+              child: Text('No products found.'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (BuildContext context, int index) {
+              var product = snapshot.data!.docs[index];
+              final image = product.get('image');
+              final name = product.get('name');
+              final SKU = product.get('SKU');
+
+              DocumentReference favoriteRef = FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .collection('favorite')
+                  .doc(product.id);
+
+              return FutureBuilder<DocumentSnapshot>(
+                future: favoriteRef.get(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  bool isFavorite = snapshot.hasData && snapshot.data!.exists;
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              productDetailsPage(product: product),
+                        ),
+                      );
+                    },
+                    child: ListTile(
+                      leading: image != null && image.isNotEmpty
+                          ? Image.network(
+                              image,
+                              width: 48.0,
+                              height: 48.0,
+                            )
+                          : Container(
+                              width: 48.0,
+                              height: 48.0,
+                              color: Colors.grey,
+                            ),
+                      title: Text(name ?? 'Unknown'),
+                      subtitle: Text(SKU ?? 'Unknown'),
+                      trailing: FavoriteButton(
+                        product: product,
+                        isFavorite: isFavorite,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }
 }
 
-class ProductTile extends StatelessWidget {
-  final Map<String, dynamic> productData;
+class FavoriteButton extends StatefulWidget {
+  final DocumentSnapshot product;
+  final bool isFavorite;
 
-  const ProductTile({required this.productData});
+  FavoriteButton({required this.product, required this.isFavorite});
+
+  @override
+  _FavoriteButtonState createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<FavoriteButton> {
+  int favoriteCount = 0;
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    favoriteCount = widget.product.get('favorites') ?? 0;
+    isFavorite = widget.isFavorite;
+  }
+
+  Future<void> toggleFavorite() async {
+    setState(() {
+      isFavorite = !isFavorite;
+      favoriteCount += isFavorite ? 1 : -1;
+    });
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    final favoritesCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorite');
+
+    if (isFavorite) {
+      // Add product to favorites
+      await favoritesCollection.doc(widget.product.id).set({'favorite': true});
+      FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.product.id)
+          .update({'favorites': FieldValue.increment(1)});
+    } else {
+      // Remove product from favorites
+      await favoritesCollection.doc(widget.product.id).delete();
+      FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.product.id)
+          .update({'favorites': FieldValue.increment(-1)});
+    }
+  }
+
+  Future<bool> checkFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return false;
+    }
+
+    final favoritesCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorite');
+
+    final favoriteDoc = await favoritesCollection.doc(widget.product.id).get();
+    return favoriteDoc.exists;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text(productData['name']),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Display product image again
-                    productData['image'] != null &&
-                            productData['image'].isNotEmpty
-                        ? Image.network(
-                            productData['image'],
-                            width: 200.0,
-                            height: 200.0,
-                            fit: BoxFit.contain,
-                          )
-                        : Container(
-                            width: 200.0,
-                            height: 200.0,
-                            color: Colors.grey,
-                          ),
-                    SizedBox(height: 16.0),
-                    Text('SKU: ${productData['SKU']}'),
-                    Text('Category: ${productData['cuisines'].join(", ")}'),
-                    // Add more details as needed
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('Close'),
-                ),
-              ],
-            );
-          },
+    return FutureBuilder<bool>(
+      future: checkFavorite(),
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+
+        final bool isFavorite = snapshot.data ?? false;
+
+        return IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : null,
+          ),
+          onPressed: toggleFavorite,
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Container(
-          // Customize the appearance of each product tile
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(8.0),
+    );
+  }
+}
+
+class productDetailsPage extends StatelessWidget {
+  final DocumentSnapshot product;
+
+  productDetailsPage({required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    final image = product.get('image');
+    final name = product.get('name');
+    final SKU = product.get('SKU');
+    final company = product.get('company');
+    final country = product.get('country');
+    final cuisines = product.get('cuisines');
+    final int favorites = product.get('favorites');
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(name ?? 'Product Details'),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                if (image != null && image.isNotEmpty)
+                  Image.network(
+                    image,
+                    fit: BoxFit.contain,
+                    height: double.infinity,
+                    width: double.infinity,
+                  ),
+                Positioned(
+                  top: 16.0,
+                  left: 16.0,
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // Display product image
-              productData['image'] != null && productData['image'].isNotEmpty
-                  ? Image.network(
-                      productData['image'],
-                      width: 80.0,
-                      height: 80.0,
-                      fit: BoxFit.contain,
-                    )
-                  : Container(
-                      width: 80.0,
-                      height: 80.0,
-                      color: Colors.grey,
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${name ?? 'Unknown'}',
+                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  'SKU: ${SKU ?? 'Unknown'}',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  'Company: ${company ?? 'Unknown'}',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  'Country: ${country ?? 'Unknown'}',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  'Cuisines: ${cuisines ?? 'Unknown'}',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                const SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    FavoriteButton(
+                      product: product,
+                      isFavorite: favorites != null && favorites > 0,
                     ),
-              SizedBox(height: 8.0),
-              // Display product name
-              Text(
-                productData['name'],
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8.0),
-              Text(
-                productData['SKU'],
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.normal),
-              ),
-            ],
+                    const SizedBox(width: 8.0),
+                    Text(
+                      '${favorites}',
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
