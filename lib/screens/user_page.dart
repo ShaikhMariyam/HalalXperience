@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'maps.dart';
 import 'user-view/products.dart';
 import 'user-view/companies.dart';
+import 'user-view/favorites.dart';
 import 'user-view/restaurants.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'Scanner.dart';
@@ -199,7 +200,7 @@ class userDashboard extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => userDashboard()),
+                MaterialPageRoute(builder: (context) => FavoritesPage()),
               );
             },
           ),
