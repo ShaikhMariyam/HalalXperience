@@ -25,7 +25,7 @@ class adminPage extends StatelessWidget {
         '/products': (context) => ProductPage(),
         '/restaurant': (context) => Restaurant(),
         '/addCompany': (context) => AddCompanyPage(),
-        '/addProduct': (context) => Users(),
+        '/addProduct': (context) => addProductPage(),
         '/addRestaurant': (context) => addRestaurantPage(),
         '/addAdmin': (context) => RegisterAdmin(),
       },
@@ -101,34 +101,7 @@ class HomePage extends StatelessWidget {
           primary: Colors.yellow.shade700,
         ),
         onPressed: () {
-          if (route == '/addCompany') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AddCompanyPage()),
-            );
-          } else if (route == '/companies') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CompaniesPage()),
-            );
-          } else if (route == '/restaurant') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => Restaurant()),
-            );
-          } else if (route == '/product') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ProductPage()),
-            );
-          } else if (route == '/AddAdmin') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RegisterAdmin()),
-            );
-          } else {
-            Navigator.pushNamed(context, route);
-          }
+          Navigator.pushNamed(context, route);
         },
         icon: Icon(icon),
         label: Text(
