@@ -153,8 +153,6 @@ class _addProductPageState extends State<addProductPage> {
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context); // Close the dialog
-                              Navigator.pop(
-                                  context); // Go back to the previous page
                             },
                             child: const Text('OK'),
                           ),

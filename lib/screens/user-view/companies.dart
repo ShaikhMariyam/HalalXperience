@@ -195,7 +195,7 @@ class CompanyDetailsPage extends StatelessWidget {
             Text('Halal Standards: ${halalStandards ?? 'Unknown'}'),
             FavoriteButton(
                 company: company, isFavorite: favorite != null && favorite > 0),
-            Text('Favorite Count: ${favorite ?? 'Unknown'}'),
+            Text('Favorite Count: ${favorite}'),
           ],
         ),
       ),
