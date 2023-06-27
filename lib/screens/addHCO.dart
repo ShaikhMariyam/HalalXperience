@@ -38,6 +38,8 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: Color(0xFFFFB606), // Set the background color here
+
           title: const Text('Add Company'),
         ),
         body: SingleChildScrollView(
@@ -131,6 +133,10 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
                     ElevatedButton(
                       onPressed: _pickLogo,
                       child: const Text('Upload Logo'),
+                      style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all<Color>(Color(0xFFFFB606)),
+                      ),
                     ),
                     const SizedBox(width: 16.0),
                     if (_selectedLogo != null)
@@ -185,6 +191,10 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
                     );
                   },
                   child: const Text('Add Company'),
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Color(0xFFFFB606)),
+                  ),
                 ),
               ],
             ),

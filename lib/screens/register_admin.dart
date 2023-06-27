@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'admin_dashboard.dart';
 
 class RegisterAdmin extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
@@ -44,6 +45,7 @@ class RegisterAdmin extends StatelessWidget {
                       children: [
                         TextFormField(
                           controller: _nameController,
+                          style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.name,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -64,6 +66,7 @@ class RegisterAdmin extends StatelessWidget {
                         const SizedBox(height: 16.0),
                         TextFormField(
                           controller: _emailController,
+                          style: const TextStyle(color: Colors.white),
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -84,6 +87,7 @@ class RegisterAdmin extends StatelessWidget {
                         const SizedBox(height: 16.0),
                         TextFormField(
                           controller: _passwordController,
+                          style: const TextStyle(color: Colors.white),
                           obscureText: true,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -105,9 +109,13 @@ class RegisterAdmin extends StatelessWidget {
                         ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              registerUser();
+                              registerUser(context);
                             }
                           },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Color(0xFFFFB606)),
+                          ),
                           child: const Text('Register'),
                         ),
                       ],
@@ -122,9 +130,9 @@ class RegisterAdmin extends StatelessWidget {
     );
   }
 
-  void registerUser() async {
+  void registerUser(BuildContext context) async {
     try {
-      UserCredential userCredential =
+      UserCredential AdminCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
@@ -133,15 +141,18 @@ class RegisterAdmin extends StatelessWidget {
       // Save user data to Firestore
       await FirebaseFirestore.instance
           .collection('Admin')
-          .doc(userCredential.user!.uid)
+          .doc(AdminCredential.user!.uid)
           .set({
         'name': _nameController.text,
         'email': _emailController.text,
       });
 
       print(
-          'Admin registered successfully! User ID: ${userCredential.user!.uid}');
-      // Navigate to registration success page or perform any other action
+          'Admin registered successfully! User ID: ${AdminCredential.user!.uid}');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => adminPage()),
+      );
     } catch (e) {
       print('Failed to register Admin. Error: $e');
     }
