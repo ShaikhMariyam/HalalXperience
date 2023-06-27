@@ -15,132 +15,130 @@ class userDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: MaterialApp(
-        home: Navigator(
-          onGenerateRoute: (settings) {
-            return MaterialPageRoute(
-              builder: (context) => Scaffold(
-                drawer: _buildDrawer(context),
-                appBar: AppBar(
-                  title: const Text('HalalXperience'),
-                  backgroundColor: Colors.yellow.shade700,
-                ),
-                body: SingleChildScrollView(
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: CarouselSlider(
-                            items: [
-                              GestureDetector(
-                                onTap: () => _navigateToPrayerTimesApp(context),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.black, width: 2.0),
-                                  ),
-                                  child: Image.asset('assets/image.jpg'),
+    return MaterialApp(
+      home: Navigator(
+        onGenerateRoute: (settings) {
+          return MaterialPageRoute(
+            builder: (context) => Scaffold(
+              drawer: _buildDrawer(context),
+              appBar: AppBar(
+                title: const Text('HalalXperience'),
+                backgroundColor: Colors.yellow.shade700,
+              ),
+              body: SingleChildScrollView(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: CarouselSlider(
+                          items: [
+                            GestureDetector(
+                              onTap: () => _navigateToPrayerTimesApp(context),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.black, width: 2.0),
                                 ),
+                                child: Image.asset('assets/image.jpg'),
                               ),
-                              GestureDetector(
-                                onTap: () => _navigateToPrayerTimesApp(context),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.black, width: 2.0),
-                                  ),
-                                  child: Image.asset('assets/image.png'),
+                            ),
+                            GestureDetector(
+                              onTap: () => _navigateToPrayerTimesApp(context),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.black, width: 2.0),
                                 ),
+                                child: Image.asset('assets/image.png'),
                               ),
-                              GestureDetector(
-                                onTap: () => _navigateToPrayerTimesApp(context),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.black, width: 2.0),
-                                  ),
-                                  child: Image.asset('assets/logo.png'),
+                            ),
+                            GestureDetector(
+                              onTap: () => _navigateToPrayerTimesApp(context),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.black, width: 2.0),
                                 ),
+                                child: Image.asset('assets/logo.png'),
+                              ),
+                            ),
+                          ],
+                          options: CarouselOptions(
+                            autoPlay: true,
+                            enlargeCenterPage: true,
+                            aspectRatio: 16 / 9,
+                            viewportFraction: 0.8,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      GridView.count(
+                        crossAxisCount: 3,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          buildButton('Favorites', Icons.favorite),
+                          buildButton('Cuisines', Icons.restaurant_menu),
+                          buildButton('Must Try', Icons.thumb_up),
+                          buildButton('Restaurants', Icons.restaurant),
+                          buildButton('Near You', Icons.near_me),
+                          buildButton('More', Icons.more_horiz),
+                        ],
+                      ),
+                      const SizedBox(height: 16.0),
+                      const Text(
+                        'Restaurants Near You',
+                        style: TextStyle(
+                            fontSize: 18.0, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8.0),
+                      SingleChildScrollView(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              StreamBuilder<QuerySnapshot>(
+                                stream: _firestore
+                                    .collection('restaurants')
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    final restaurants = snapshot.data!.docs;
+                                    return Column(
+                                      children: restaurants.map((doc) {
+                                        final data =
+                                            doc.data() as Map<String, dynamic>;
+                                        return _buildRestaurantCard(
+                                          logo: data['logo'],
+                                          name: data['name'],
+                                          url: data['url'],
+                                          id: data['restaurantID'],
+                                          cuisines: List<String>.from(
+                                              data['cuisines']),
+                                          context: context,
+                                        );
+                                      }).toList(),
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Text('Error: ${snapshot.error}');
+                                  } else {
+                                    return CircularProgressIndicator();
+                                  }
+                                },
                               ),
                             ],
-                            options: CarouselOptions(
-                              autoPlay: true,
-                              enlargeCenterPage: true,
-                              aspectRatio: 16 / 9,
-                              viewportFraction: 0.8,
-                            ),
                           ),
                         ),
-                        const SizedBox(height: 16.0),
-                        GridView.count(
-                          crossAxisCount: 3,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          children: [
-                            buildButton('Favorites', Icons.favorite),
-                            buildButton('Cuisines', Icons.restaurant_menu),
-                            buildButton('Must Try', Icons.thumb_up),
-                            buildButton('Restaurants', Icons.restaurant),
-                            buildButton('Near You', Icons.near_me),
-                            buildButton('More', Icons.more_horiz),
-                          ],
-                        ),
-                        const SizedBox(height: 16.0),
-                        const Text(
-                          'Restaurants Near You',
-                          style: TextStyle(
-                              fontSize: 18.0, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8.0),
-                        SingleChildScrollView(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                StreamBuilder<QuerySnapshot>(
-                                  stream: _firestore
-                                      .collection('restaurants')
-                                      .snapshots(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      final restaurants = snapshot.data!.docs;
-                                      return Column(
-                                        children: restaurants.map((doc) {
-                                          final data =
-                                              doc.data() as Map<String, dynamic>;
-                                          return _buildRestaurantCard(
-                                            logo: data['logo'],
-                                            name: data['name'],
-                                            url: data['url'],
-                                            id: data['restaurantID'],
-                                            cuisines:
-                                                List<String>.from(data['cuisines']),
-                                            context: context,
-                                          );
-                                        }).toList(),
-                                      );
-                                    } else if (snapshot.hasError) {
-                                      return Text('Error: ${snapshot.error}');
-                                    } else {
-                                      return CircularProgressIndicator();
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
