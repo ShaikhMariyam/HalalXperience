@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../maps.dart';
 
 class Restaurant extends StatefulWidget {
@@ -56,7 +57,8 @@ class _RestaurantPageState extends State<Restaurant> {
               ? ListView(
                   padding: EdgeInsets.all(16.0),
                   children: [
-                    ImageSection(restaurantName: _restaurantData!['name']),
+                    ImageSection(
+                        restaurantId: _restaurantData!['restaurantID']),
                     SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.all(32),
@@ -78,7 +80,9 @@ class _RestaurantPageState extends State<Restaurant> {
                         ],
                       ),
                     ),
-                    ButtonSection(),
+                    ButtonSection(
+                        restaurantData: _restaurantData,
+                        restaurantId: widget.restaurantId),
                     Padding(
                       padding: const EdgeInsets.all(32),
                       child: Text(
@@ -95,67 +99,75 @@ class _RestaurantPageState extends State<Restaurant> {
 }
 
 class ImageSection extends StatelessWidget {
-  final String restaurantName;
+  final String restaurantId;
 
-  ImageSection({required this.restaurantName});
+  ImageSection({required this.restaurantId});
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance.collection('restaurants').snapshots(),
+    return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      future: FirebaseFirestore.instance
+          .collection('restaurants')
+          .doc(restaurantId)
+          .get(),
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final data = snapshot.data!.docs;
-          final imageUrls =
-              data.map((docSnapshot) => docSnapshot.data()['image']).toList();
-          final logoUrls =
-              data.map((docSnapshot) => docSnapshot.data()['logo']).toList();
-
-          return CarouselSlider.builder(
-            itemCount: imageUrls.length,
-            itemBuilder: (BuildContext context, int index, _) {
-              final imageUrl = imageUrls[index];
-              final logoUrl = logoUrls[index];
-
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-                    imageUrl,
-                    width: 600,
-                    height: 240,
-                    fit: BoxFit.cover,
-                  ),
-                  Image.network(
-                    logoUrl,
-                    width: 600,
-                    height: 240,
-                    fit: BoxFit.cover,
-                  ),
-                ],
-              );
-            },
-            options: CarouselOptions(
-              height: 240,
-              viewportFraction: 1.0,
-              enableInfiniteScroll: true,
-              autoPlay: true,
-              autoPlayInterval: Duration(seconds: 3),
-              autoPlayAnimationDuration: Duration(milliseconds: 800),
-              autoPlayCurve: Curves.fastOutSlowIn,
-              enlargeCenterPage: true,
-              scrollDirection: Axis.horizontal,
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            height: 240,
+            child: Center(
+              child: CircularProgressIndicator(),
             ),
           );
         } else if (snapshot.hasError) {
           return const Center(
             child: Text('Error fetching images from Firestore'),
           );
+        } else if (snapshot.hasData) {
+          final data = snapshot.data!.data();
+          if (data != null) {
+            final imageUrl = data['image'];
+            final logoUrl = data['logo'];
+
+            return CarouselSlider(
+              items: [
+                Image.network(
+                  imageUrl,
+                  width: 600,
+                  height: 240,
+                  fit: BoxFit.contain,
+                ),
+                Image.network(
+                  logoUrl,
+                  width: 600,
+                  height: 240,
+                  fit: BoxFit.contain,
+                ),
+              ],
+              options: CarouselOptions(
+                height: 240,
+                viewportFraction: 1.0,
+                enableInfiniteScroll: true,
+                autoPlay: true,
+                autoPlayInterval: Duration(seconds: 3),
+                autoPlayAnimationDuration: Duration(milliseconds: 800),
+                autoPlayCurve: Curves.fastOutSlowIn,
+                enlargeCenterPage: true,
+                scrollDirection: Axis.horizontal,
+              ),
+            );
+          } else {
+            return Container(
+              height: 240,
+              child: Center(
+                child: Text('No images found for this restaurant.'),
+              ),
+            );
+          }
         } else {
           return Container(
             height: 240,
             child: Center(
-              child: CircularProgressIndicator(),
+              child: Text('Restaurant data not found.'),
             ),
           );
         }
@@ -166,26 +178,40 @@ class ImageSection extends StatelessWidget {
 
 class ButtonSection extends StatelessWidget {
   @override
+  Map<String, dynamic>? restaurantData;
+  final String restaurantId;
+
+  ButtonSection({required this.restaurantData, required this.restaurantId});
+
   Widget build(BuildContext context) {
     Color color = Theme.of(context).primaryColorDark;
+    print(restaurantData!['favorites']);
+    final int favorites = restaurantData!['favorites'];
+    print(favorites);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildButtonColumn(context, color, Icons.call, 'CALL'),
         _buildButtonColumn(context, color, Icons.near_me, 'ROUTE'),
-        _buildButtonColumn(context, color, Icons.share, 'SHARE'),
+        Row(children: [
+          FavoriteButton(
+            product: FirebaseFirestore.instance
+                .collection('restaurants')
+                .doc(restaurantId),
+            isFavorite: restaurantData!['favorite'] ?? false,
+          ),
+          Text(
+            '${favorites}',
+            style: TextStyle(fontSize: 16.0),
+          ),
+        ])
       ],
     );
   }
 
   Column _buildButtonColumn(
       BuildContext context, Color color, IconData icon, String label) {
-    String location = 'location';
-    if (label == 'location') {
-      location;
-    }
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -193,12 +219,13 @@ class ButtonSection extends StatelessWidget {
         GestureDetector(
           onTap: () async {
             if (label == 'CALL') {
-              // Retrieve the phone number from Firebase
-              String phoneNumber = await _getPhoneNumberFromFirebase();
-              // Call the phone number
-              _callPhoneNumber(context, phoneNumber);
-            } else {
-              launch(location);
+              _callPhoneNumber(context, restaurantData!['phoneNumber']);
+            } else if (label == 'ROUTE') {
+              // Retrieve the restaurant location from Firebase
+              GeoPoint location = await _getLocationFromFirebase(
+                  restaurantData!['restaurantID']);
+              // Open Google Maps with the specified latitude and longitude
+              _openGoogleMaps(location.latitude, location.longitude);
             }
           },
           child: Icon(icon, color: color),
@@ -218,11 +245,8 @@ class ButtonSection extends StatelessWidget {
     );
   }
 
-  Future<String> _getPhoneNumberFromFirebase() async {
-    // Replace 'your_restaurant_id' with the actual ID used in Firebase
-    String restaurantId = 'restaurantID';
-
-    // Retrieve the phone number from Firebase
+  Future<GeoPoint> _getLocationFromFirebase(String restaurantId) async {
+    // Retrieve the location from Firebase
     DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
         .instance
         .collection('restaurants')
@@ -230,9 +254,19 @@ class ButtonSection extends StatelessWidget {
         .get();
 
     if (snapshot.exists) {
-      return snapshot.data()!['phoneNumber'] ?? '';
+      return snapshot.data()!['location'] as GeoPoint;
     } else {
-      return '';
+      return GeoPoint(0, 0); // Default location (0, 0) if not found
+    }
+  }
+
+  void _openGoogleMaps(double latitude, double longitude) async {
+    String url =
+        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
     }
   }
 
@@ -266,5 +300,94 @@ class ButtonSection extends StatelessWidget {
         },
       );
     }
+  }
+}
+
+class FavoriteButton extends StatefulWidget {
+  final DocumentReference product;
+  final bool isFavorite;
+
+  FavoriteButton({required this.product, required this.isFavorite});
+
+  @override
+  _FavoriteButtonState createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<FavoriteButton> {
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isFavorite = widget.isFavorite;
+  }
+
+  Future<void> toggleFavorite() async {
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    final favoritesCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorite');
+
+    if (isFavorite) {
+      // Add product to favorites
+      await favoritesCollection.doc(widget.product.id).set({'favorite': true});
+      FirebaseFirestore.instance
+          .collection('restaurants')
+          .doc(widget.product.id)
+          .update({'favorites': FieldValue.increment(1)});
+    } else {
+      // Remove product from favorites
+      await favoritesCollection.doc(widget.product.id).delete();
+      FirebaseFirestore.instance
+          .collection('restaurants')
+          .doc(widget.product.id)
+          .update({'favorites': FieldValue.increment(-1)});
+    }
+  }
+
+  Future<bool> checkFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return false;
+    }
+
+    final favoritesCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorite');
+
+    final favoriteDoc = await favoritesCollection.doc(widget.product.id).get();
+    return favoriteDoc.exists;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: checkFavorite(),
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+
+        final bool isFavorite = snapshot.data ?? false;
+
+        return IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : null,
+          ),
+          onPressed: toggleFavorite,
+        );
+      },
+    );
   }
 }

@@ -184,7 +184,7 @@ class userDashboard extends StatelessWidget {
               );
             },
           ),
-          ListTile(
+          /*ListTile(
             leading: Icon(Icons.restaurant),
             title: Text('Restaurants'),
             onTap: () {
@@ -193,7 +193,7 @@ class userDashboard extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => RestaurantsPage()),
               );
             },
-          ),
+          ),*/
           ListTile(
             leading: Icon(Icons.star),
             title: Text('Favorites'),
@@ -204,7 +204,7 @@ class userDashboard extends StatelessWidget {
               );
             },
           ),
-          ListTile(
+          /*ListTile(
             leading: Icon(Icons.calendar_today),
             title: Text('Hijri Calendar'),
             onTap: () {
@@ -213,7 +213,7 @@ class userDashboard extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => CompaniesPage()),
               );
             },
-          ),
+          ),*/
           ListTile(
             leading: Icon(Icons.fastfood),
             title: Text('Products'),
