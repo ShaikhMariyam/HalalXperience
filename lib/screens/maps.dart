@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user-view/restaurants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RestaurantsPage extends StatefulWidget {
   @override
@@ -23,6 +24,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Restaurants List'),
+        backgroundColor: Colors.yellow.shade700,
         actions: [
           IconButton(
             icon: Icon(Icons.search),
@@ -62,30 +64,49 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               final name = restaurant.get('name');
               final url = restaurant.get('url');
               final Rid = restaurant.get('restaurantID');
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RestaurantPage(restaurantId: Rid),
+
+              DocumentReference favoriteRef = FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .collection('favorite')
+                  .doc(Rid);
+
+              return FutureBuilder<DocumentSnapshot>(
+                future: favoriteRef.get(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> snapshot) {
+                  bool isFavorite = snapshot.hasData && snapshot.data!.exists;
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Restaurant(restaurantId: Rid),
+                        ),
+                      );
+                    },
+                    child: ListTile(
+                      leading: RImage != null && RImage.isNotEmpty
+                          ? Image.network(
+                              RImage,
+                              width: 48.0,
+                              height: 48.0,
+                            )
+                          : Container(
+                              width: 48.0,
+                              height: 48.0,
+                              color: Colors.grey,
+                            ),
+                      title: Text(name ?? 'Unknown'),
+                      subtitle: Text(url ?? 'Unknown'),
+                      trailing: FavoriteButton(
+                        restaurant: restaurant,
+                        isFavorite: isFavorite,
+                      ),
                     ),
                   );
                 },
-                child: ListTile(
-                  leading: RImage != null && RImage.isNotEmpty
-                      ? Image.network(
-                          RImage,
-                          width: 48.0,
-                          height: 48.0,
-                        )
-                      : Container(
-                          width: 48.0,
-                          height: 48.0,
-                          color: Colors.grey,
-                        ),
-                  title: Text(name ?? 'Unknown'),
-                  subtitle: Text(url ?? 'Unknown'),
-                ),
               );
             },
           );
@@ -169,7 +190,7 @@ class RestaurantSearchDelegate extends SearchDelegate {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RestaurantPage(restaurantId: Rid),
+                    builder: (context) => Restaurant(restaurantId: Rid),
                   ),
                 );
               },
@@ -190,6 +211,101 @@ class RestaurantSearchDelegate extends SearchDelegate {
               ),
             );
           },
+        );
+      },
+    );
+  }
+}
+
+class FavoriteButton extends StatefulWidget {
+  final DocumentSnapshot restaurant;
+  final bool isFavorite;
+
+  FavoriteButton({required this.restaurant, required this.isFavorite});
+
+  @override
+  _FavoriteButtonState createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<FavoriteButton> {
+  int favoriteCount = 0;
+  bool isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    favoriteCount = widget.restaurant.get('favorites') ?? 0;
+    isFavorite = widget.isFavorite;
+  }
+
+  Future<void> toggleFavorite() async {
+    setState(() {
+      isFavorite = !isFavorite;
+      favoriteCount += isFavorite ? 1 : -1;
+    });
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    final favoritesCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorite');
+
+    if (isFavorite) {
+      // Add restaurant to favorites
+      await favoritesCollection
+          .doc(widget.restaurant.id)
+          .set({'favorite': true});
+      FirebaseFirestore.instance
+          .collection('restaurants')
+          .doc(widget.restaurant.id)
+          .update({'favorites': FieldValue.increment(1)});
+    } else {
+      // Remove restaurant from favorites
+      await favoritesCollection.doc(widget.restaurant.id).delete();
+      FirebaseFirestore.instance
+          .collection('restaurants')
+          .doc(widget.restaurant.id)
+          .update({'favorites': FieldValue.increment(-1)});
+    }
+  }
+
+  Future<bool> checkFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return false;
+    }
+
+    final favoritesCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('favorite');
+
+    final favoriteDoc =
+        await favoritesCollection.doc(widget.restaurant.id).get();
+    return favoriteDoc.exists && favoriteDoc['favorite'];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: checkFavorite(),
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        }
+
+        final bool isFavorite = snapshot.data ?? false;
+
+        return IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : null,
+          ),
+          onPressed: toggleFavorite,
         );
       },
     );
