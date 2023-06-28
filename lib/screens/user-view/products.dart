@@ -324,6 +324,7 @@ class ProductSearchDelegate extends SearchDelegate {
       stream: FirebaseFirestore.instance
           .collection('products')
           .where('name', isGreaterThanOrEqualTo: query)
+          .where('name', isLessThan: query + 'z')
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
