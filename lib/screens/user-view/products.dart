@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:halalxperience/screens/product.dart';
 
 class ProductsPage extends StatelessWidget {
   @override
@@ -8,6 +11,15 @@ class ProductsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Products'),
+        backgroundColor: Colors.yellow.shade700,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showSearch(context: context, delegate: ProductSearchDelegate());
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('products').snapshots(),
@@ -215,16 +227,6 @@ class productDetailsPage extends StatelessWidget {
                     height: double.infinity,
                     width: double.infinity,
                   ),
-                Positioned(
-                  top: 16.0,
-                  left: 16.0,
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
               ],
             ),
           ),
@@ -276,6 +278,107 @@ class productDetailsPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ProductSearchDelegate extends SearchDelegate {
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return _buildSearchResults(context, query);
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    if (query.isEmpty) {
+      return Container();
+    }
+    return _buildSearchResults(context, query.toLowerCase());
+  }
+
+  Widget _buildSearchResults(BuildContext context, String query) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('products')
+          .where('name', isGreaterThanOrEqualTo: query)
+          .snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text('No Products found.'),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (BuildContext context, int index) {
+            var restaurant = snapshot.data!.docs[index];
+            final RImage = restaurant.get('image');
+            final name = restaurant.get('name');
+            final SKU = restaurant.get('SKU');
+            final Pid = restaurant.get('productID');
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductDetailsPage(ProductData: Pid),
+                  ),
+                );
+              },
+              child: ListTile(
+                leading: RImage != null && RImage.isNotEmpty
+                    ? Image.network(
+                        RImage,
+                        width: 48.0,
+                        height: 48.0,
+                      )
+                    : Container(
+                        width: 48.0,
+                        height: 48.0,
+                        color: Colors.grey,
+                      ),
+                title: Text(name ?? 'Unknown'),
+                subtitle: Text(SKU ?? 'Unknown'),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

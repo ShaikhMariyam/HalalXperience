@@ -25,8 +25,6 @@ class adminPage extends StatelessWidget {
         '/products': (context) => ProductPage(),
         '/restaurant': (context) => Restaurant(),
         '/addCompany': (context) => AddCompanyPage(),
-        '/addProduct': (context) => addProductPage(),
-        '/addRestaurant': (context) => addRestaurantPage(),
         '/addAdmin': (context) => RegisterAdmin(),
       },
     );
@@ -69,10 +67,6 @@ class HomePage extends StatelessWidget {
                 buildButton(context, 'Restaurants', Icons.label, '/restaurant'),
                 buildButton(
                     context, 'Add Company', Icons.add_business, '/addCompany'),
-                buildButton(context, 'Add Product', Icons.add_shopping_cart,
-                    '/addProduct'),
-                buildButton(context, 'Add Restaurant', Icons.add_circle_outline,
-                    '/addRestaurant'),
                 buildButton(context, 'Add Admin', Icons.business, '/addAdmin'),
               ],
             ),
