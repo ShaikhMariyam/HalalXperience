@@ -272,8 +272,7 @@ class userDashboard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => RestaurantPage(
-                    restaurantId: id)), // Replace with the desired screen
+                builder: (context) => Restaurant(restaurantId: id)),
           );
         },
         child: Column(
