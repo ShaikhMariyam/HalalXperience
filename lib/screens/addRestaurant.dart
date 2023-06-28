@@ -262,6 +262,7 @@ class _addRestaurantPageState extends State<addRestaurantPage> {
       'logo': logoUrl,
       'image': imageUrl,
       'cuisines': _selectedCuisines,
+      'favorites': 0,
       'location': location != null
           ? GeoPoint(location.latitude, location.longitude)
           : null,
