@@ -10,6 +10,7 @@ import 'user-view/favorites.dart';
 import 'user-view/restaurants.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'Scanner.dart';
+import 'user-view/cuisines.dart';
 
 class userDashboard extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -81,12 +82,15 @@ class userDashboard extends StatelessWidget {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         children: [
-                          buildButton('Favorites', Icons.favorite),
-                          buildButton('Cuisines', Icons.restaurant_menu),
-                          buildButton('Must Try', Icons.thumb_up),
-                          buildButton('Restaurants', Icons.restaurant),
-                          buildButton('Near You', Icons.near_me),
-                          buildButton('More', Icons.more_horiz),
+                          buildButton(context, 'Favorites', Icons.favorite),
+                          buildButton(
+                              context, 'Cuisines', Icons.restaurant_menu),
+                          buildButton(context, 'Products', Icons.food_bank),
+                          buildButton(context, 'Restaurants', Icons.restaurant),
+                          buildButton(context, 'Prayer Timings',
+                              Icons.volunteer_activism),
+                          buildButton(context, 'Barcode Scanner',
+                              Icons.qr_code_scanner),
                         ],
                       ),
                       const SizedBox(height: 16.0),
@@ -144,17 +148,46 @@ class userDashboard extends StatelessWidget {
     );
   }
 
-  Widget buildButton(String label, IconData icon) {
+  Widget buildButton(BuildContext context, String label, IconData icon) {
     return Container(
       margin: const EdgeInsets.all(8.0),
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-          primary:
-              Colors.yellow.shade700, // Set the color to Colors.yellow.shade700
+          primary: Colors.yellow.shade700,
         ),
         onPressed: () {
-          // TODO: Implement button functionality
+          if (label == 'Favorites') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => FavoritesPage()),
+            );
+          } else if (label == 'Cuisines') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CuisinesPage()),
+            );
+          } else if (label == 'Products') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProductsPage()),
+            );
+          } else if (label == 'Restaurants') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RestaurantsPage()),
+            );
+          } else if (label == 'Prayer Timings') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PrayerTimesApp()),
+            );
+          } else if (label == 'Barcode Scanner') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ScannerPage()),
+            );
+          }
         },
         icon: Icon(icon),
         label: Text(
