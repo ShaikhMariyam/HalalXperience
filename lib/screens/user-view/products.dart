@@ -7,7 +7,7 @@ class ProductsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Products'),
+        title: const Text('Products'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('products').snapshots(),
@@ -19,13 +19,13 @@ class ProductsPage extends StatelessWidget {
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
           if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-            return Center(
+            return const Center(
               child: Text('No products found.'),
             );
           }
@@ -165,7 +165,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
       future: checkFavorite(),
       builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
 
         final bool isFavorite = snapshot.data ?? false;
@@ -219,7 +219,7 @@ class productDetailsPage extends StatelessWidget {
                   top: 16.0,
                   left: 16.0,
                   child: IconButton(
-                    icon: Icon(Icons.arrow_back),
+                    icon: const Icon(Icons.arrow_back),
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -235,27 +235,28 @@ class productDetailsPage extends StatelessWidget {
               children: [
                 Text(
                   '${name ?? 'Unknown'}',
-                  style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 24.0, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8.0),
                 Text(
                   'SKU: ${SKU ?? 'Unknown'}',
-                  style: TextStyle(fontSize: 16.0),
+                  style: const TextStyle(fontSize: 16.0),
                 ),
                 const SizedBox(height: 8.0),
                 Text(
                   'Company: ${company ?? 'Unknown'}',
-                  style: TextStyle(fontSize: 16.0),
+                  style: const TextStyle(fontSize: 16.0),
                 ),
                 const SizedBox(height: 8.0),
                 Text(
                   'Country: ${country ?? 'Unknown'}',
-                  style: TextStyle(fontSize: 16.0),
+                  style: const TextStyle(fontSize: 16.0),
                 ),
                 const SizedBox(height: 8.0),
                 Text(
                   'Cuisines: ${cuisines ?? 'Unknown'}',
-                  style: TextStyle(fontSize: 16.0),
+                  style: const TextStyle(fontSize: 16.0),
                 ),
                 const SizedBox(height: 8.0),
                 Row(
@@ -267,7 +268,7 @@ class productDetailsPage extends StatelessWidget {
                     const SizedBox(width: 8.0),
                     Text(
                       '${favorites}',
-                      style: TextStyle(fontSize: 16.0),
+                      style: const TextStyle(fontSize: 16.0),
                     ),
                   ],
                 ),
