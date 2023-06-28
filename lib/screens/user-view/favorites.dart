@@ -116,9 +116,10 @@ class FavoritesPage extends StatelessWidget {
                         if (restaurantSnapshot.hasData &&
                             restaurantSnapshot.data!.exists) {
                           var restaurant = restaurantSnapshot.data!;
-                          final image = restaurant.get('image');
+                          final image = restaurant.get('logo');
                           final name = restaurant.get('name');
                           final id = restaurant.get('restaurantID');
+                          final phoneNumber = restaurant.get('phoneNumber');
 
                           return ListTile(
                             leading: image != null && image.isNotEmpty
@@ -133,12 +134,12 @@ class FavoritesPage extends StatelessWidget {
                                     color: Colors.grey,
                                   ),
                             title: Text(name ?? 'Unknown'),
-                            subtitle: Text(id ?? 'Unknown'),
+                            subtitle: Text(phoneNumber ?? 'Unknown'),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => RestaurantPage(
+                                  builder: (context) => Restaurant(
                                     restaurantId: id,
                                   ),
                                 ),

@@ -22,6 +22,7 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
   String? _halalStandards;
 
   File? _selectedLogo;
+  UserCredential? _userCredential;
 
   Future<void> _pickLogo() async {
     final picker = ImagePicker();
@@ -150,6 +151,9 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
                 const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () async {
+                    // Register the user with Firebase Authentication
+                    await registerHCO();
+
                     String name = _nameController.text;
                     String email = _emailController.text;
                     String phone = _phoneController.text;
@@ -163,14 +167,16 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
 
                     // Add the company to Firestore
                     addCompanyToFirestore(
-                        name,
-                        email,
-                        phone,
-                        country,
-                        registrationNumber,
-                        _certificationValidity ?? '',
-                        _halalStandards ?? '',
-                        logoUrl ?? '');
+                      _userCredential!.user!.uid,
+                      name,
+                      email,
+                      phone,
+                      country,
+                      registrationNumber,
+                      _certificationValidity ?? '',
+                      _halalStandards ?? '',
+                      logoUrl ?? '',
+                    );
 
                     showDialog(
                       context: context,
@@ -202,16 +208,16 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
         ));
   }
 
-  void registerHCO() async {
+  Future<void> registerHCO() async {
     try {
-      UserCredential userCredential =
+      _userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
       print(
-          'User registered successfully! User ID: ${userCredential.user!.uid}');
+          'User registered successfully! User ID: ${_userCredential!.user!.uid}');
       // Navigate to registration success page or perform any other action
     } catch (e) {
       print('Failed to register user. Error: $e');
@@ -236,6 +242,7 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
   }
 
   void addCompanyToFirestore(
+    String userId,
     String name,
     String email,
     String phone,
@@ -249,7 +256,9 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
     CollectionReference companiesRef =
         FirebaseFirestore.instance.collection('HCO');
 
-    companiesRef.add({
+    companiesRef
+        .doc(userId) // Use the user ID as the document ID in Firestore
+        .set({
       'name': name,
       'email': email,
       'phone': phone,
@@ -258,6 +267,41 @@ class _AddCompanyPageState extends State<AddCompanyPage> {
       'certificationValidity': certificationValidity,
       'halalStandards': halalStandards,
       'logoUrl': logoUrl ?? '',
+    }).then((value) {
+      print('Company added successfully');
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Success'),
+          content: const Text('Company added successfully'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context); // Go back to the previous page
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }).catchError((error) {
+      print('Failed to add company: $error');
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Failed to add company'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     });
   }
 }

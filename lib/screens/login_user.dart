@@ -130,6 +130,7 @@ class LoginScreen extends StatelessWidget {
       // Check user type in three different databases
       UserType userType = await checkUserType(userCredential.user!.uid);
       print("object");
+      print(_emailController.text + " " + _passwordController.text);
 
       // Forward to the appropriate dashboard based on user type
       switch (userType) {
@@ -196,30 +197,30 @@ class LoginScreen extends StatelessWidget {
 
   Future<UserType> checkUserType(String uid) async {
 // Check if the user exists in the 'users' collection
+    print(uid);
 
     DocumentSnapshot userDoc =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    DocumentSnapshot adminDoc =
+        await FirebaseFirestore.instance.collection('Admin').doc(uid).get();
+    DocumentSnapshot hcoDoc =
+        await FirebaseFirestore.instance.collection('HCO').doc(uid).get();
+
     if (userDoc.exists) {
       print("user blah blah");
       return UserType.user;
-    }
-
-// Check if the user exists in the 'admin' collection
-    DocumentSnapshot adminDoc =
-        await FirebaseFirestore.instance.collection('Admin').doc(uid).get();
-    if (adminDoc.exists) {
+    } else if (adminDoc.exists) {
+      // Check if the user exists in the 'admin' collection
       print("admin blah blah");
       return UserType.admin;
-    }
-
-// Check if the user exists in the 'HCO' collection
-    DocumentSnapshot hcoDoc =
-        await FirebaseFirestore.instance.collection('HCO').doc(uid).get();
-    if (hcoDoc.exists) {
+    } else if (hcoDoc.exists) {
+      // Check if the user exists in the 'HCO' collection
       print("hco blah blah");
       return UserType.hco;
+    } else {
+      print(hcoDoc.exists);
+      print("nothing found");
     }
-
 // Default to no user type if not found in any database
     return UserType.user; // Return a default user type
   }
