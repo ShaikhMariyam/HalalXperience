@@ -182,7 +182,7 @@ class CompanyDetailsPage extends StatelessWidget {
                 logoUrl,
                 width: 120.0,
                 height: 120.0,
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
               ),
             const SizedBox(height: 16.0),
             Text('Name: ${name ?? 'Unknown'}'),

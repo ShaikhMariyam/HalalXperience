@@ -223,7 +223,7 @@ class productDetailsPage extends StatelessWidget {
                 if (image != null && image.isNotEmpty)
                   Image.network(
                     image,
-                    fit: BoxFit.contain,
+                    fit: BoxFit.cover,
                     height: double.infinity,
                     width: double.infinity,
                   ),
