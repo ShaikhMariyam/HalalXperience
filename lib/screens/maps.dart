@@ -56,59 +56,20 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             );
           }
 
-          return ListView.builder(
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (BuildContext context, int index) {
-              var restaurant = snapshot.data!.docs[index];
-              final RImage = restaurant.get('image');
-              final name = restaurant.get('name');
-              final url = restaurant.get('url');
-              final Rid = restaurant.get('restaurantID');
+          final restaurants = snapshot.data!.docs;
 
-              DocumentReference favoriteRef = FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .collection('favorite')
-                  .doc(Rid);
-
-              return FutureBuilder<DocumentSnapshot>(
-                future: favoriteRef.get(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<DocumentSnapshot> snapshot) {
-                  bool isFavorite = snapshot.hasData && snapshot.data!.exists;
-
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Restaurant(restaurantId: Rid),
-                        ),
-                      );
-                    },
-                    child: ListTile(
-                      leading: RImage != null && RImage.isNotEmpty
-                          ? Image.network(
-                              RImage,
-                              width: 48.0,
-                              height: 48.0,
-                            )
-                          : Container(
-                              width: 48.0,
-                              height: 48.0,
-                              color: Colors.grey,
-                            ),
-                      title: Text(name ?? 'Unknown'),
-                      subtitle: Text(url ?? 'Unknown'),
-                      trailing: FavoriteButton(
-                        restaurant: restaurant,
-                        isFavorite: isFavorite,
-                      ),
-                    ),
-                  );
-                },
+          return ListView(
+            children: restaurants.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              return _buildRestaurantCard(
+                logo: data['logo'],
+                name: data['name'],
+                url: data['url'],
+                id: data['restaurantID'],
+                cuisines: List<String>.from(data['cuisines']),
+                context: context,
               );
-            },
+            }).toList(),
           );
         },
       ),
@@ -157,6 +118,7 @@ class RestaurantSearchDelegate extends SearchDelegate {
       stream: FirebaseFirestore.instance
           .collection('restaurants')
           .where('name', isGreaterThanOrEqualTo: query)
+          .where('name', isLessThan: query + 'z')
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasError) {
@@ -217,97 +179,70 @@ class RestaurantSearchDelegate extends SearchDelegate {
   }
 }
 
-class FavoriteButton extends StatefulWidget {
-  final DocumentSnapshot restaurant;
-  final bool isFavorite;
-
-  FavoriteButton({required this.restaurant, required this.isFavorite});
-
-  @override
-  _FavoriteButtonState createState() => _FavoriteButtonState();
-}
-
-class _FavoriteButtonState extends State<FavoriteButton> {
-  int favoriteCount = 0;
-  bool isFavorite = false;
-
-  @override
-  void initState() {
-    super.initState();
-    favoriteCount = widget.restaurant.get('favorites') ?? 0;
-    isFavorite = widget.isFavorite;
-  }
-
-  Future<void> toggleFavorite() async {
-    setState(() {
-      isFavorite = !isFavorite;
-      favoriteCount += isFavorite ? 1 : -1;
-    });
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return;
-    }
-
-    final favoritesCollection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('favorite');
-
-    if (isFavorite) {
-      // Add restaurant to favorites
-      await favoritesCollection
-          .doc(widget.restaurant.id)
-          .set({'favorite': true});
-      FirebaseFirestore.instance
-          .collection('restaurants')
-          .doc(widget.restaurant.id)
-          .update({'favorites': FieldValue.increment(1)});
-    } else {
-      // Remove restaurant from favorites
-      await favoritesCollection.doc(widget.restaurant.id).delete();
-      FirebaseFirestore.instance
-          .collection('restaurants')
-          .doc(widget.restaurant.id)
-          .update({'favorites': FieldValue.increment(-1)});
-    }
-  }
-
-  Future<bool> checkFavorite() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return false;
-    }
-
-    final favoritesCollection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('favorite');
-
-    final favoriteDoc =
-        await favoritesCollection.doc(widget.restaurant.id).get();
-    return favoriteDoc.exists && favoriteDoc['favorite'];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: checkFavorite(),
-      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        }
-
-        final bool isFavorite = snapshot.data ?? false;
-
-        return IconButton(
-          icon: Icon(
-            isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: isFavorite ? Colors.red : null,
-          ),
-          onPressed: toggleFavorite,
+Widget _buildRestaurantCard({
+  required String logo,
+  required String name,
+  required String url,
+  required String id,
+  required List<String> cuisines,
+  required BuildContext context,
+}) {
+  return Card(
+    elevation: 2.0,
+    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    child: InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Restaurant(restaurantId: id)),
         );
       },
-    );
-  }
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Image.network(
+            logo,
+            fit: BoxFit.contain,
+            height: 150.0,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 4.0),
+                Text(
+                  url,
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                SizedBox(height: 4.0),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: cuisines.map((cuisine) {
+                    return Text(
+                      cuisine,
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: Colors.grey[600],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

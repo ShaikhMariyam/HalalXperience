@@ -69,11 +69,11 @@ class HomePage extends StatelessWidget {
                     '/ViewRestaurants'),
               ],
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 8.0),
             Image.asset(
               'assets/logo.png',
-              width: 400,
-              height: 400,
+              width: 250,
+              height: 250,
             ),
           ],
         ),
@@ -84,9 +84,9 @@ class HomePage extends StatelessWidget {
   Widget buildButton(
       BuildContext context, String label, IconData icon, String route) {
     return Container(
-      margin: const EdgeInsets.all(8.0),
-      width: 70.0,
-      height: 70.0,
+      margin: const EdgeInsets.all(20.0),
+      width: 100.0, // Adjust the width here
+      height: 100.0, // Adjust the height here
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.zero,
