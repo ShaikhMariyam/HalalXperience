@@ -64,13 +64,20 @@ class ProductPage extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.edit),
                       onPressed: () {
-                        // TODO: Handle update functionality
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UpdateProductsPage(
+                              productData: productData,
+                            ),
+                          ),
+                        );
                       },
                     ),
                     IconButton(
                       icon: Icon(Icons.delete),
                       onPressed: () {
-                        // TODO: Handle delete functionality
+                        _showDeleteConfirmation(context, productData);
                       },
                     ),
                   ],
@@ -91,13 +98,90 @@ class ProductPage extends StatelessWidget {
       ),
     );
   }
+
+  void _showDeleteConfirmation(
+      BuildContext context, Map<String, dynamic> productData) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Product'),
+          content: Text('Are you sure you want to delete this product?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteProduct(context, productData['documentId']);
+              },
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteProduct(BuildContext context, String? documentId) async {
+    try {
+      if (documentId != null) {
+        await FirebaseFirestore.instance
+            .collection('products')
+            .doc(documentId)
+            .delete();
+        Navigator.pop(
+            context); // Navigate back to the previous page after deletion
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Error'),
+              content: Text('The document ID is null.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the dialog
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text(
+                'An error occurred while deleting the product.\nError: $e'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the dialog
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 }
 
 class ProductDetailsPage extends StatelessWidget {
   final Map<String, dynamic> ProductData;
 
   const ProductDetailsPage({required this.ProductData});
-  Future<void> deleteRestaurant(BuildContext context) async {
+  Future<void> deleteProduct(BuildContext context) async {
     try {
       String? documentId = ProductData['documentId'] as String?;
       if (documentId != null) {
@@ -176,7 +260,7 @@ class ProductDetailsPage extends StatelessWidget {
     );
 
     if (confirmed) {
-      deleteRestaurant(context); // Delete the restaurant
+      deleteProduct(context);
     }
   }
 
@@ -264,8 +348,7 @@ class ProductDetailsPage extends StatelessWidget {
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                showDeleteConfirmation(
-                    context); // Show delete confirmation dialog
+                showDeleteConfirmation(context);
               },
               child: Text('Delete'),
               style: ElevatedButton.styleFrom(primary: Colors.red),
