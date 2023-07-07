@@ -134,13 +134,13 @@ class ImageSection extends StatelessWidget {
                   imageUrl,
                   width: 600,
                   height: 240,
-                  fit: BoxFit.contain,
+                  fit: BoxFit.cover,
                 ),
                 Image.network(
                   logoUrl,
                   width: 600,
                   height: 240,
-                  fit: BoxFit.contain,
+                  fit: BoxFit.cover,
                 ),
               ],
               options: CarouselOptions(

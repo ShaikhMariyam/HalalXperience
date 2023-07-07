@@ -179,6 +179,7 @@ class _UpdateRestaurantPageState extends State<UpdateRestaurantPage> {
     return Scaffold(
         appBar: AppBar(
           title: Text('Update Restaurant'),
+          backgroundColor: Colors.yellow.shade700,
         ),
         body: SingleChildScrollView(
           child: Padding(

@@ -163,6 +163,7 @@ class _UpdateProductsPageState extends State<UpdateProductsPage> {
     return Scaffold(
         appBar: AppBar(
           title: Text('Update Product'),
+          backgroundColor: Colors.yellow.shade700,
         ),
         body: SingleChildScrollView(
           child: Padding(

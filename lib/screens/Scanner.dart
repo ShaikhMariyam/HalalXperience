@@ -96,27 +96,6 @@ class _ScannerPageState extends State<ScannerPage> {
     }
   }
 
-  Future<void> _uploadBarcode() async {
-    final status = await Permission.storage.request();
-
-    if (status.isGranted) {
-      pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        // Get the barcode from the image
-        final barcode = await scanner.FlutterBarcodeScanner.scanBarcode(
-          '#ff6666', // Color for the scan button
-          'Cancel', // Text for the cancel button
-          true, // Show flash icon
-          scanner.ScanMode.BARCODE, // Scan mode
-        );
-        setState(() {
-          barcodeResult = barcode;
-          productInfo = null; // Reset the product information
-        });
-      }
-    }
-  }
-
   Future<Map<String, dynamic>> getProductInfo(String barcode) async {
     // Get the product information from Firebase
     final productSnapshot = await FirebaseFirestore.instance
@@ -138,6 +117,7 @@ class _ScannerPageState extends State<ScannerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Barcode Scanner'),
+        backgroundColor: Colors.yellow.shade700,
       ),
       body: Center(
         child: Column(
@@ -145,12 +125,10 @@ class _ScannerPageState extends State<ScannerPage> {
           children: [
             ElevatedButton(
               onPressed: _scanBarcode,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.yellow.shade700,
+              ),
               child: const Text('Scan Barcode'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _uploadBarcode,
-              child: const Text('Upload Barcode'),
             ),
             const SizedBox(height: 16),
             Text(
