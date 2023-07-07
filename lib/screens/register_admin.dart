@@ -3,7 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'admin_dashboard.dart';
 
-class RegisterAdmin extends StatelessWidget {
+class RegisterAdmin extends StatefulWidget {
+  @override
+  _RegisterAdminState createState() => _RegisterAdminState();
+}
+
+class _RegisterAdminState extends State<RegisterAdmin> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
