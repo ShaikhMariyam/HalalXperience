@@ -29,6 +29,7 @@ class _CuisinesPageState extends State<CuisinesPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Cuisines'),
+        backgroundColor: Colors.yellow.shade700,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

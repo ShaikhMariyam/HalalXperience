@@ -10,6 +10,7 @@ class FavoritesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Favorites'),
+        backgroundColor: Colors.yellow.shade700,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance

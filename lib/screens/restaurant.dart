@@ -9,6 +9,7 @@ class Restaurant extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Restaurants'),
+        backgroundColor: Colors.yellow.shade700,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream:

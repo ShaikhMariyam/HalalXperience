@@ -7,6 +7,7 @@ class CompaniesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Company List'),
+        backgroundColor: Colors.yellow.shade700,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('companies').snapshots(),
