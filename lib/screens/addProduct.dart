@@ -130,8 +130,8 @@ class _addProductPageState extends State<addProductPage> {
                     String name = _nameController.text;
                     String SKU = _SKUController.text;
                     String phoneNumber = _phoneNumberController.text;
-                    String country = _CountryController.text;
                     String company = _CompanyController.text;
+                    String country = _CountryController.text;
 
                     String? imageUrl = await uploadFileToStorage(
                         name, _selectedImage, 'image');

@@ -18,69 +18,117 @@ class userDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('HalalXperience'),
-          backgroundColor: Colors.yellow.shade700,
-        ),
-        drawer: _buildDrawer(context),
-        body: SingleChildScrollView(
-          child: Container(
-            margin: const EdgeInsets.only(top: 16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: CarouselSlider(
-                    items: [
-                      GestureDetector(
-                        onTap: () => _navigateToPrayerTimesApp(context),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black, width: 2.0),
+      home: Navigator(
+        onGenerateRoute: (settings) {
+          return MaterialPageRoute(
+            builder: (context) => Scaffold(
+              drawer: _buildDrawer(context),
+              appBar: AppBar(
+                title: const Text('HalalXperience'),
+                backgroundColor: Colors.yellow.shade700,
+              ),
+              body: SingleChildScrollView(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: CarouselSlider(
+                          items: [
+                            /*GestureDetector(
+                              onTap: () => _navigateToPrayerTimesApp(context),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.black, width: 2.0),
+                                ),
+                                child: Image.asset('assets/image.jpg'),
+                              ),
+                            ),*/
+                            GestureDetector(
+                              onTap: () => _navigateToPrayerTimesApp(context),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.black, width: 2.0),
+                                ),
+                                child: Image.asset('assets/logo.png'),
+                              ),
+                            ),
+                          ],
+                          options: CarouselOptions(
+                            autoPlay: true,
+                            enlargeCenterPage: true,
+                            aspectRatio: 16 / 9,
+                            viewportFraction: 0.8,
                           ),
-                          child: Image.asset('assets/image.jpg'),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () => _navigateToPrayerTimesApp(context),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black, width: 2.0),
+                      const SizedBox(height: 16.0),
+                      GridView.count(
+                        crossAxisCount: 3,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          buildButton(
+                              'Prayer Timings', Icons.mosque_sharp, context),
+                          buildButton('Favorites', Icons.favorite, context),
+                          buildButton(
+                              'Cuisines', Icons.emoji_food_beverage, context),
+                          buildButton('Products', Icons.fastfood, context),
+                          buildButton(
+                              'Halal Organizations', Icons.business, context),
+                          buildButton('Barcode Scanner',
+                              Icons.qr_code_scanner_rounded, context),
+                        ],
+                      ),
+                      const SizedBox(height: 16.0),
+                      SingleChildScrollView(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              StreamBuilder<QuerySnapshot>(
+                                stream: _firestore
+                                    .collection('restaurants')
+                                    .snapshots(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    final restaurants = snapshot.data!.docs;
+                                    return Column(
+                                      children: restaurants.map((doc) {
+                                        final data =
+                                            doc.data() as Map<String, dynamic>;
+                                        return _buildRestaurantCard(
+                                          logo: data['logo'],
+                                          name: data['name'],
+                                          url: data['url'],
+                                          id: data['restaurantID'],
+                                          cuisines: List<String>.from(
+                                              data['cuisines']),
+                                          context: context,
+                                        );
+                                      }).toList(),
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Text('Error: ${snapshot.error}');
+                                  } else {
+                                    return CircularProgressIndicator();
+                                  }
+                                },
+                              ),
+                            ],
                           ),
-                          child: Image.asset('assets/logo.png'),
                         ),
                       ),
                     ],
-                    options: CarouselOptions(
-                      autoPlay: true,
-                      enlargeCenterPage: true,
-                      aspectRatio: 16 / 9,
-                      viewportFraction: 0.8,
-                    ),
                   ),
                 ),
-                const SizedBox(height: 16.0),
-                GridView.count(
-                  crossAxisCount: 3,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    buildButton('Prayer Timings', Icons.mosque_sharp, context),
-                    buildButton('Favorites', Icons.favorite, context),
-                    buildButton('Cuisines', Icons.emoji_food_beverage, context),
-                    buildButton('Products', Icons.fastfood, context),
-                    buildButton('Halal Organizations', Icons.business, context),
-                    buildButton('Barcode Scanner',
-                        Icons.qr_code_scanner_rounded, context),
-                  ],
-                ),
-                const SizedBox(height: 16.0),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
